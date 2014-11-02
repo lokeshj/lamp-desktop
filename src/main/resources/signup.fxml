@@ -11,7 +11,7 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.text.Font?>
 
-<GridPane alignment="CENTER" minHeight="270.0" minWidth="240.0" prefHeight="540.0" prefWidth="480.0" stylesheets="desktop.css" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="me.lokesh.lamp.ui.SignupController">
+<GridPane alignment="CENTER" style="-fx-background-color: white;" minHeight="270.0" minWidth="240.0" prefHeight="540.0" prefWidth="480.0" stylesheets="desktop.css" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="me.lokesh.lamp.ui.SignupController">
    <columnConstraints>
       <ColumnConstraints fillWidth="false" percentWidth="100.0" />
       <ColumnConstraints />
