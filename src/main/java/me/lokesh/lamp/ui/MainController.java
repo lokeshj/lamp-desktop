@@ -17,13 +17,16 @@ import javafx.scene.shape.Circle;
 import me.lokesh.lamp.Shared;
 import me.lokesh.lamp.events.*;
 import me.lokesh.lamp.service.Config;
+import me.lokesh.lamp.service.LAMPService;
 import me.lokesh.lamp.service.models.Peer;
 import me.lokesh.lamp.service.player.Track;
 import me.lokesh.lamp.service.search.AsyncRecursiveDirectoryStream;
 import me.lokesh.lamp.service.search.SearchAgent;
+import me.lokesh.lamp.service.utils.SystemProperties;
 import me.lokesh.lamp.ui.multiscreen.ControlledScreen;
 import me.lokesh.lamp.ui.multiscreen.ScreensPane;
 import org.controlsfx.control.SegmentedButton;
+import org.controlsfx.dialog.Dialogs;
 import org.controlsfx.glyphfont.FontAwesome;
 import org.controlsfx.glyphfont.GlyphFont;
 import org.controlsfx.glyphfont.GlyphFontRegistry;
@@ -35,14 +38,12 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLDecoder;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.ResourceBundle;
+import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorCompletionService;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.stream.Collectors;
 
 public class MainController implements Initializable, ControlledScreen {
     private final EventBus eventBus = Shared.getEventBus();
@@ -66,15 +67,17 @@ public class MainController implements Initializable, ControlledScreen {
     private ToggleButton libraryButton;
     private ToggleButton searchResultsButton;
 
-    private List<URL> searchResultUrlList;
-    private List<Path> libraryList;
+    private List<Track> searchResultUrlList;
+    private List<Track> libraryList;
     private ObservableList<Peer> peerList;
+    private Peer lastSelectedPeer;
 
     private GlyphFont fontAwesome = GlyphFontRegistry.font("FontAwesome");
     private final String onlineFill = "#02cd50";
     private final String offlineFill = "#e1380e";
 
     private ExecutorService searchExecutor = Executors.newCachedThreadPool();
+    ExecutorCompletionService<List<Track>> completionService;
 
     @Override
     public void setScreenParent(ScreensPane screenPage) {
@@ -135,12 +138,7 @@ public class MainController implements Initializable, ControlledScreen {
             if (event.getClickCount() == 2) {
                 //Use ListView's getSelected Item
                 int itemIndex = searchResultListview.getSelectionModel().getSelectedIndex();
-                URL selectedItem = searchResultUrlList.get(itemIndex);
-
-                Track track = new Track(selectedItem.toString(),
-                        searchResultListview.getSelectionModel().getSelectedItem());
-
-                eventBus.post(new StartPlaybackEvent(track));
+                showPeerChoiceDialogAndPlay(searchResultUrlList.get(itemIndex));
             }
         });
 
@@ -153,12 +151,7 @@ public class MainController implements Initializable, ControlledScreen {
             if (event.getClickCount() == 2) {
                 //Use ListView's getSelected Item
                 int itemIndex = libraryListView.getSelectionModel().getSelectedIndex();
-                Path selectedItem = libraryList.get(itemIndex);
-
-                Track track = new Track(selectedItem.toUri().toString(),
-                        selectedItem.getFileName().toString());
-
-                eventBus.post(new StartPlaybackEvent(track));
+                showPeerChoiceDialogAndPlay(libraryList.get(itemIndex));
             }
         });
 
@@ -167,21 +160,86 @@ public class MainController implements Initializable, ControlledScreen {
     }
 
     private void loadLibrary() {
-        ObservableList<String> list = FXCollections.observableArrayList();
-        libraryListView.setItems(list);
+        Platform.runLater(() -> {
+            ObservableList<String> list = FXCollections.observableArrayList();
+            libraryListView.setItems(list);
+
+            List<Track> results = SearchAgent.remote("localhost", "");
+            libraryList = new ArrayList<>();
+
+            for (Track result : results) {
+                list.add(result.getName());
+                libraryList.add(result);
+            }
+        });
+    }
+
+    private void showPeerChoiceDialogAndPlay(Track selectedItem) {
+        List<Peer> choices = new LinkedList<>();
+        Peer local = new Peer();
+        local.setIpAddress(SystemProperties.getIPAddress());
+        local.setName(Config.getDeviceName().getValue());
+        choices.add(local);
+        choices.addAll(peerList.stream().collect(Collectors.toList()));
+
+
+        ChoiceDialog<Peer> dialog;
+        if(lastSelectedPeer == null) {
+            dialog = new ChoiceDialog<>(local, choices);
+        } else {
+            dialog = new ChoiceDialog<>(lastSelectedPeer, choices);
+        }
+
+        dialog.setHeaderText("Play it on?");
+        dialog.setContentText("");
+        dialog.setTitle("Select device");
+
+        Optional<Peer> result = dialog.showAndWait();
+        if (result.isPresent()) {
+            lastSelectedPeer = result.get();
+            eventBus.post(new StartRemotePlaybackEvent(lastSelectedPeer.getIpAddress(), selectedItem));
+        }
+    }
+
+    @FXML
+    public void search() {
+        String query = searchTextfield.getText().trim();
+        if (query.isEmpty()) {
+            return;
+        }
+
+        searchResultListview.setPlaceholder(new Label("Searching ..."));
+
+        completionService = new ExecutorCompletionService<>(searchExecutor);
+        completionService.submit(() -> SearchAgent.remote("localhost", query));
+        for (Peer peer : peerList) {
+            completionService.submit(() -> SearchAgent.remote(peer.getIpAddress(), query));
+        }
+
+        searchResultUrlList = new LinkedList<>();
 
         Platform.runLater(() -> {
-            try {
-                AsyncRecursiveDirectoryStream results = SearchAgent.local("");
-                libraryList = new ArrayList<>();
+            searchResultsButton.setSelected(true);
+            searchResultsButton.setVisible(true);
+            searchResultListview.toFront();
 
-                for (Path result : results) {
-                    list.add(result.getFileName().toString());
-                    libraryList.add(result);
+            ObservableList<String> nameList = FXCollections.observableArrayList();
+            searchResultListview.setItems(nameList);
+
+            for (int i = 0; i < peerList.size() + 1; ++i) {
+                try {
+                    List<Track> results = completionService.take().get();
+                    for (Track result : results) {
+                        nameList.add(result.getName());
+                        searchResultUrlList.add(result);
+                    }
+                } catch (InterruptedException | ExecutionException e) {
+                    e.printStackTrace();
                 }
+            }
 
-            } catch (IOException e) {
-                /* ignore */
+            if (nameList.size() == 0) {
+                searchResultListview.setPlaceholder(new Label("No Results found"));
             }
         });
     }
@@ -216,51 +274,6 @@ public class MainController implements Initializable, ControlledScreen {
     @Subscribe
     public void onNetworkErrorEvent(NetworkErrorEvent event) {
         Platform.runLater(() -> connectionStatus.setFill(Color.valueOf(offlineFill)));
-    }
-
-    @FXML
-    public void search() {
-        String query = searchTextfield.getText().trim();
-        if (query.isEmpty()) {
-            return;
-        }
-
-        ExecutorCompletionService<List<Track>> completionService = new ExecutorCompletionService<List<Track>>(searchExecutor);
-        completionService.submit(() -> SearchAgent.remote("localhost", query));
-        for (Peer peer : peerList) {
-            completionService.submit(() -> SearchAgent.remote(peer.getIpAddress(), query));
-        }
-
-        searchResultUrlList = new LinkedList<>();
-
-        Platform.runLater(() -> {
-            searchResultsButton.setSelected(true);
-            searchResultsButton.setVisible(true);
-            searchResultListview.setPlaceholder(new Label("Searching ..."));
-            ObservableList<String> nameList = FXCollections.observableArrayList();
-            searchResultListview.setItems(nameList);
-            searchResultListview.toFront();
-
-            for (int i = 0; i < peerList.size() + 1; ++i) {
-                try {
-                    List<Track> results = completionService.take().get();
-                    for (Track result : results) {
-                        nameList.add(result.getName());
-                        try {
-                            searchResultUrlList.add(new URL(result.getUrl()));
-                        } catch (MalformedURLException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                } catch (InterruptedException | ExecutionException e) {
-                    e.printStackTrace();
-                }
-            }
-
-            if (nameList.size() == 0) {
-                searchResultListview.setPlaceholder(new Label("No Results found"));
-            }
-        });
     }
 
     @Subscribe

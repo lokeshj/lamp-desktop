@@ -42,11 +42,7 @@ public class Peer {
 
     @Override
     public String toString() {
-        return "Node{" +
-                "name='" + name + '\'' +
-                ", os='" + os + '\'' +
-                ", ipAddress='" + ipAddress + '\'' +
-                '}';
+        return name;
     }
 
     @Override

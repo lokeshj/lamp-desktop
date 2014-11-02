@@ -5,10 +5,7 @@ import com.google.common.eventbus.Subscribe;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableMap;
 import me.lokesh.lamp.Shared;
-import me.lokesh.lamp.events.PeerOfflineEvent;
-import me.lokesh.lamp.events.PeerOnlineEvent;
-import me.lokesh.lamp.events.PeerStatusReceivedEvent;
-import me.lokesh.lamp.events.PeerUpdateEvent;
+import me.lokesh.lamp.events.*;
 import me.lokesh.lamp.service.api.Server;
 import me.lokesh.lamp.service.models.Peer;
 import me.lokesh.lamp.service.models.PeerStatus;
@@ -84,11 +81,12 @@ public class PeerManager {
         }
     }
 
-    public void playOnPeer(Peer peer, Track track) {
+    @Subscribe
+    public void onStartRemotePlaybackEvent(StartRemotePlaybackEvent event) {
         try {
-            String url = "http://" + peer.getIpAddress() + ":" + Server.PORT +
-                    "/seed?url=" + URLEncoder.encode(track.getUrl(), "UTF-8") +
-                    "&name=" + URLEncoder.encode(track.getName(), "UTF-8");
+            String url = "http://" + event.getIpAddress() + ":" + Server.PORT +
+                    "/seed?url=" + URLEncoder.encode(event.getTrack().getUrl(), "UTF-8") +
+                    "&name=" + URLEncoder.encode(event.getTrack().getName(), "UTF-8");
 
             String response = HttpAgent.get(url);
             logger.info(response);
