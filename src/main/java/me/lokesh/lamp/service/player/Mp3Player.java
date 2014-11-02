@@ -7,6 +7,7 @@ import javazoom.jl.player.advanced.AdvancedPlayer;
 import javazoom.jl.player.advanced.PlaybackEvent;
 import javazoom.jl.player.advanced.PlaybackListener;
 import me.lokesh.lamp.Shared;
+import me.lokesh.lamp.events.AddToPlaylistEvent;
 import me.lokesh.lamp.events.PlaybackStartedEvent;
 import me.lokesh.lamp.events.PlaybackStoppedEvent;
 import me.lokesh.lamp.events.StartPlaybackEvent;
@@ -77,6 +78,18 @@ public class Mp3Player {
         playbackExecutor.execute(new PlayerRunnable());
     }
 
+    public boolean isPlaying() {
+        return player != null;
+    }
+
+    public Track getCurrentTrack() {
+        if(playlist.size() > 0) {
+            return playlist.get(currentIndex);
+        } else {
+            return null;
+        }
+    }
+
     public void stop() {
         logger.info("Stopping Audio Player");
         if (player != null) {
@@ -93,6 +106,11 @@ public class Mp3Player {
     @Subscribe
     public void onStartPlaybackEvent(StartPlaybackEvent event) {
         play(event.getTrack());
+    }
+
+    @Subscribe
+    public void onAddToPlaybackEvent(AddToPlaylistEvent event) {
+        addToPlaylist(event.getTrack());
     }
 
     @Subscribe
@@ -124,6 +142,7 @@ public class Mp3Player {
                 player.play();
             } catch (JavaLayerException e) {
                 logger.error("error in playback of {}, error=", urlAsString, e);
+                player = null;
                 eventBus.post(new PlaybackStoppedEvent());
             } catch (IOException e) {
                 logger.error("error opening file for playback path={}, error={}", urlAsString, e);

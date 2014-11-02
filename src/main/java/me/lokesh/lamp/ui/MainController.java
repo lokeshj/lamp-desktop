@@ -5,6 +5,7 @@ import com.google.common.eventbus.Subscribe;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.collections.ObservableMap;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
@@ -19,6 +20,7 @@ import me.lokesh.lamp.events.*;
 import me.lokesh.lamp.service.Config;
 import me.lokesh.lamp.service.LAMPService;
 import me.lokesh.lamp.service.models.Peer;
+import me.lokesh.lamp.service.models.PeerStatus;
 import me.lokesh.lamp.service.player.Track;
 import me.lokesh.lamp.service.search.AsyncRecursiveDirectoryStream;
 import me.lokesh.lamp.service.search.SearchAgent;
@@ -307,7 +309,15 @@ public class MainController implements Initializable, ControlledScreen {
         protected void updateItem(Peer item, boolean empty) {
             super.updateItem(item, empty);
             if(!empty) {
-                setText(item.getName());
+                String ip = item.getIpAddress();
+                ObservableMap<String, PeerStatus> statusMap = LAMPService.getPeerManager().getPeerStatusMap();
+                PeerStatus peerStatus = statusMap.get(ip);
+
+                String labelText = item.getName();
+                if (peerStatus.isPlaying()) {
+                    labelText += " ( " + peerStatus.getTrack() + " )";
+                }
+                setText(labelText);
             }
         }
     }

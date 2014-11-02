@@ -2,6 +2,7 @@ package me.lokesh.lamp.service.api;
 
 import com.google.common.eventbus.EventBus;
 import me.lokesh.lamp.Shared;
+import me.lokesh.lamp.events.AddToPlaylistEvent;
 import me.lokesh.lamp.events.StartPlaybackEvent;
 import me.lokesh.lamp.service.Config;
 import me.lokesh.lamp.service.player.Track;
@@ -70,6 +71,9 @@ public class Server implements Runnable{
                 }
                 case "/search": {
                     return handleSearch(parms);
+                }
+                case "/addToPlaylist": {
+                    return handleAddToPlaylist(parms);
                 }
                 default: {
                     return new Response(HTTP_OK, MIME_HTML, "LAMP at your service");
@@ -140,6 +144,19 @@ public class Server implements Runnable{
 
             } else {
                 return new Response(HTTP_BADREQUEST, MIME_HTML, "q is a required parameter");
+            }
+        }
+
+        private Response handleAddToPlaylist(Properties parms) {
+            String url = parms.getProperty("url");
+            String name = parms.getProperty("name");
+
+            if (url != null && name != null) {
+                eventBus.post(new AddToPlaylistEvent(new Track(url, name)));
+                return new Response(HTTP_OK, MIME_HTML, "got it! added to playlist " + url);
+
+            } else {
+                return new Response(HTTP_BADREQUEST, MIME_HTML, "host and file are both required parameters");
             }
         }
     }

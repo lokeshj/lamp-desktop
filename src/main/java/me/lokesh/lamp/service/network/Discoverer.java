@@ -6,8 +6,11 @@ import me.lokesh.lamp.events.NetworkErrorEvent;
 import me.lokesh.lamp.events.NetworkSuccessEvent;
 import me.lokesh.lamp.events.PeerStatusReceivedEvent;
 import me.lokesh.lamp.service.Config;
+import me.lokesh.lamp.service.LAMPService;
 import me.lokesh.lamp.service.models.Peer;
 import me.lokesh.lamp.service.models.PeerStatus;
+import me.lokesh.lamp.service.player.Mp3Player;
+import me.lokesh.lamp.service.player.Track;
 import me.lokesh.lamp.service.utils.JsonHandler;
 import me.lokesh.lamp.service.utils.SystemProperties;
 import org.slf4j.Logger;
@@ -79,15 +82,23 @@ public class Discoverer implements Runnable {
             peer.setOs(Peer.UNKNOWN);
         }
 
+        Mp3Player player = LAMPService.getMp3Player();
+        Track track = player.getCurrentTrack();
+
         PeerStatus peerStatus = new PeerStatus();
-        peerStatus.setPlaying(false);
+        peerStatus.setPlaying(player.isPlaying());
         peerStatus.setPlayedBy("");
         peerStatus.setPlayedFrom("");
-        peerStatus.setTrack("");
+        if(track != null) {
+            peerStatus.setTrack(track.getName());
+        } else  {
+            peerStatus.setTrack("");
+        }
+
         peerStatus.setPeer(peer);
 
         String data = JsonHandler.stringify(peerStatus);
-        logger.trace("created discovery packet with data: " + data);
+        logger.debug("created discovery packet with data: " + data);
 
         return new DatagramPacket(data.getBytes(), data.length(),
                 broadcastAddress, DISCOVERY_PORT);

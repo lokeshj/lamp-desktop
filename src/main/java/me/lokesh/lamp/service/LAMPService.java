@@ -49,4 +49,7 @@ public class LAMPService {
     public static PeerManager getPeerManager() {
         return peerManager;
     }
+    public static Mp3Player getMp3Player() {
+        return mp3Player;
+    }
 }

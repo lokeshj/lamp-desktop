@@ -4,9 +4,6 @@ package me.lokesh.lamp.service.models;
  * Created by lokesh.
  */
 public class PeerStatus {
-    public static final String ONLINE = "ONLINE";
-    public static final String OFFLINE = "OFFLINE";
-
     Peer peer;
     boolean playing;
     String track;
@@ -51,6 +48,19 @@ public class PeerStatus {
 
     public void setPlayedFrom(String playedFrom) {
         this.playedFrom = playedFrom;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if(obj instanceof PeerStatus) {
+            PeerStatus other = (PeerStatus) obj;
+            return peer.equals(other.getPeer()) &&
+                    playing == other.isPlaying() &&
+                    track.equals(other.getTrack()) &&
+                    playedBy.equals(other.getPlayedBy()) &&
+                    playedFrom.equals(other.getPlayedFrom());
+        }
+        return false;
     }
 
     @Override

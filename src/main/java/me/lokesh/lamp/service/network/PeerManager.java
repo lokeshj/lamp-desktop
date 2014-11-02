@@ -53,6 +53,10 @@ public class PeerManager {
         peerStatusTimeMap.clear();
     }
 
+    public ObservableMap<String, PeerStatus> getPeerStatusMap() {
+        return peerStatusMap;
+    }
+
     @Subscribe
     public void onPeerStatusReceivedEvent(PeerStatusReceivedEvent event) {
         PeerStatus peerStatus = event.getPeerStatus();
@@ -63,8 +67,10 @@ public class PeerManager {
             peerStatusMap.put(ipAddress, peerStatus);
             eventBus.post(new PeerOnlineEvent(peer));
         } else {
+            PeerStatus oldStatus = peerStatusMap.get(ipAddress);
             Peer oldPeer = peerStatusMap.get(ipAddress).getPeer();
-            if (!oldPeer.getName().equals(peer.getName())){
+
+            if (!oldStatus.equals(peerStatus)) {
                 eventBus.post(new PeerUpdateEvent(oldPeer, peer));
             }
             peerStatusMap.replace(ipAddress, peerStatus);
