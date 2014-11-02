@@ -26,7 +26,7 @@
    <children>
       <HBox alignment="CENTER_LEFT" maxHeight="50.0" prefHeight="50.0" prefWidth="480.0" style="-fx-background-color: #2c3e50;" GridPane.columnSpan="2" GridPane.rowIndex="2" GridPane.valignment="BOTTOM" GridPane.vgrow="NEVER">
          <children>
-            <Button fx:id="stopButton" graphicTextGap="2.0" minHeight="0.0" minWidth="0.0" mnemonicParsing="false" onAction="#stopPlayback" prefHeight="0.0" prefWidth="0.0" text="Stop">
+            <Button fx:id="stopButton" graphicTextGap="2.0" minHeight="0.0" minWidth="0.0" mnemonicParsing="false" onAction="#stopPlayback" prefHeight="0.0" prefWidth="0.0" style="-fx-background-color: white;" text="Stop">
                <HBox.margin>
                   <Insets left="20.0" />
                </HBox.margin>

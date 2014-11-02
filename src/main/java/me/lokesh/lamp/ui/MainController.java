@@ -252,8 +252,8 @@ public class MainController implements Initializable, ControlledScreen {
             try {
                 stopButton.setGraphic(fontAwesome.create(FontAwesome.Glyph.STOP).size(12));
                 stopButton.setPrefHeight(32.0);
-                stopButton.setPrefWidth(75.0);
-                stopButton.setMinWidth(75.0);
+                stopButton.setPrefWidth(60.0);
+                stopButton.setMinWidth(60.0);
                 stopButton.setVisible(true);
                 System.out.println("playing "+event.getTrack());
                 String track = URLDecoder.decode(event.getTrack().getName(), "UTF-8");
