@@ -9,11 +9,16 @@ import me.lokesh.lamp.events.PeerOfflineEvent;
 import me.lokesh.lamp.events.PeerOnlineEvent;
 import me.lokesh.lamp.events.PeerStatusReceivedEvent;
 import me.lokesh.lamp.events.PeerUpdateEvent;
+import me.lokesh.lamp.service.api.Server;
 import me.lokesh.lamp.service.models.Peer;
 import me.lokesh.lamp.service.models.PeerStatus;
+import me.lokesh.lamp.service.player.Track;
+import me.lokesh.lamp.service.utils.HttpAgent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -51,10 +56,6 @@ public class PeerManager {
         peerStatusTimeMap.clear();
     }
 
-    public ObservableMap<String, PeerStatus> getPeerStatusMap() {
-        return peerStatusMap;
-    }
-
     @Subscribe
     public void onPeerStatusReceivedEvent(PeerStatusReceivedEvent event) {
         PeerStatus peerStatus = event.getPeerStatus();
@@ -80,6 +81,19 @@ public class PeerManager {
             peerStatusTimeMap.put(ipAddress, curTime);
         } else {
             peerStatusTimeMap.replace(ipAddress, curTime);
+        }
+    }
+
+    public void playOnPeer(Peer peer, Track track) {
+        try {
+            String url = "http://" + peer.getIpAddress() + ":" + Server.PORT +
+                    "/seed?url=" + URLEncoder.encode(track.getUrl(), "UTF-8") +
+                    "&name=" + URLEncoder.encode(track.getName(), "UTF-8");
+
+            String response = HttpAgent.get(url);
+            logger.info(response);
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
         }
     }
 

@@ -103,20 +103,13 @@ public class Server implements Runnable{
         private Response handleSeed(Properties parms) {
             //process the command
             //start playing the file from the specified host
-            String host = parms.getProperty("host");
-            String file = parms.getProperty("file");
+            String url = parms.getProperty("url");
+            String name = parms.getProperty("name");
 
-            if (host != null && file != null) {
-                try {
-                    String urlToPlay = "http://" + host + "/file?f=" + URLEncoder.encode(file, "UTF-8");
-                    eventBus.post(new StartPlaybackEvent(new Track(urlToPlay, file)));
-                    return new Response(HTTP_OK, MIME_HTML, "got it! playing " + urlToPlay);
+            if (url != null && name != null) {
+                eventBus.post(new StartPlaybackEvent(new Track(url, name)));
+                return new Response(HTTP_OK, MIME_HTML, "got it! playing " + url);
 
-                } catch (UnsupportedEncodingException e) {
-                    e.printStackTrace();
-                    return new Response(HTTP_BADREQUEST, MIME_HTML, "sorry! utf-8 encoding is not supported " +
-                            "on this system. can't help you :(");
-                }
             } else {
                 return new Response(HTTP_BADREQUEST, MIME_HTML, "host and file are both required parameters");
             }
