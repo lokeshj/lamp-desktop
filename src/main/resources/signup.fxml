@@ -1,21 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import org.controlsfx.glyphfont.*?>
-<?import javafx.scene.web.*?>
-<?import javafx.scene.*?>
-<?import javafx.scene.effect.*?>
-<?import java.lang.*?>
-<?import javafx.geometry.*?>
-<?import javafx.scene.control.*?>
-<?import javafx.scene.text.*?>
 <?import javafx.geometry.Insets?>
-<?import javafx.scene.control.Button?>
-<?import javafx.scene.control.Label?>
-<?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.effect.Glow?>
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.text.Font?>
-<?import org.controlsfx.control.textfield.CustomTextField?>
-
 <GridPane alignment="CENTER" minHeight="270.0" minWidth="240.0" prefHeight="540.0" prefWidth="480.0" stylesheets="desktop.css" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="me.lokesh.lamp.ui.SignupController">
    <columnConstraints>
       <ColumnConstraints fillWidth="false" percentWidth="100.0" />

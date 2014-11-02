@@ -9,9 +9,7 @@ import me.lokesh.lamp.service.utils.JsonHandler;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
-import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
 
 /**

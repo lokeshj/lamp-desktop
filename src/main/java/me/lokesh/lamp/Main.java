@@ -4,18 +4,9 @@ import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.layout.AnchorPane;
 import javafx.stage.Stage;
-import javazoom.jl.decoder.JavaLayerException;
-import javazoom.jl.player.Player;
 import me.lokesh.lamp.service.Config;
 import me.lokesh.lamp.service.LAMPService;
-import me.lokesh.lamp.service.player.Track;
-import me.lokesh.lamp.service.search.SearchAgent;
 import me.lokesh.lamp.ui.multiscreen.ScreensPane;
-
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.util.List;
 
 public class Main extends Application {
 

@@ -7,7 +7,6 @@ import javafx.fxml.Initializable;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
 import javafx.stage.DirectoryChooser;
-import javafx.util.StringConverter;
 import me.lokesh.lamp.Shared;
 import me.lokesh.lamp.events.SettingsUpdatedEvent;
 import me.lokesh.lamp.service.Config;

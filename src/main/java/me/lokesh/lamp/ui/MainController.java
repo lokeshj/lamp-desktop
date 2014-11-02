@@ -17,9 +17,7 @@ import javafx.scene.shape.Circle;
 import me.lokesh.lamp.Shared;
 import me.lokesh.lamp.events.*;
 import me.lokesh.lamp.service.Config;
-import me.lokesh.lamp.service.LAMPService;
 import me.lokesh.lamp.service.models.Peer;
-import me.lokesh.lamp.service.network.PeerManager;
 import me.lokesh.lamp.service.player.Track;
 import me.lokesh.lamp.service.search.AsyncRecursiveDirectoryStream;
 import me.lokesh.lamp.service.search.SearchAgent;
@@ -37,7 +35,12 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLDecoder;
 import java.nio.file.Path;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.ResourceBundle;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorCompletionService;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -161,8 +164,6 @@ public class MainController implements Initializable, ControlledScreen {
 
         peerListview.setPlaceholder(new Label("No Peers are online"));
         libraryListView.setPlaceholder(new Label("No MP3 files found"));
-        searchResultListview.setPlaceholder(new Label("No Results found"));
-
     }
 
     private void loadLibrary() {
@@ -220,47 +221,45 @@ public class MainController implements Initializable, ControlledScreen {
     @FXML
     public void search() {
         String query = searchTextfield.getText().trim();
-        if(query.isEmpty()){
+        if (query.isEmpty()) {
             return;
         }
 
-        ObservableList<String> nameList = FXCollections.observableArrayList();
-
-        searchExecutor.submit(() -> {
-            List<Track> results = SearchAgent.remote("localhost", query);
-
-            searchResultUrlList = new LinkedList<>();
-            for (Track result : results) {
-                nameList.add(result.getName());
-                try {
-                    searchResultUrlList.add(new URL(result.getUrl()));
-                } catch (MalformedURLException e) {
-                    e.printStackTrace();
-                }
-            }
-        });
-
-        for (Peer peer: peerList) {
-            searchExecutor.submit(() -> {
-                List<Track> results = SearchAgent.remote(peer.getIpAddress(), query);
-
-                searchResultUrlList = new LinkedList<>();
-                for (Track result : results) {
-                    nameList.add(result.getName());
-                    try {
-                        searchResultUrlList.add(new URL(result.getUrl()));
-                    } catch (MalformedURLException e) {
-                        e.printStackTrace();
-                    }
-                }
-            });
+        ExecutorCompletionService<List<Track>> completionService = new ExecutorCompletionService<List<Track>>(searchExecutor);
+        completionService.submit(() -> SearchAgent.remote("localhost", query));
+        for (Peer peer : peerList) {
+            completionService.submit(() -> SearchAgent.remote(peer.getIpAddress(), query));
         }
+
+        searchResultUrlList = new LinkedList<>();
 
         Platform.runLater(() -> {
             searchResultsButton.setSelected(true);
             searchResultsButton.setVisible(true);
-            searchResultListview.toFront();
+            searchResultListview.setPlaceholder(new Label("Searching ..."));
+            ObservableList<String> nameList = FXCollections.observableArrayList();
             searchResultListview.setItems(nameList);
+            searchResultListview.toFront();
+
+            for (int i = 0; i < peerList.size() + 1; ++i) {
+                try {
+                    List<Track> results = completionService.take().get();
+                    for (Track result : results) {
+                        nameList.add(result.getName());
+                        try {
+                            searchResultUrlList.add(new URL(result.getUrl()));
+                        } catch (MalformedURLException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                } catch (InterruptedException | ExecutionException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            if (nameList.size() == 0) {
+                searchResultListview.setPlaceholder(new Label("No Results found"));
+            }
         });
     }
 
