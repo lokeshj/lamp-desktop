@@ -9,7 +9,6 @@ import me.lokesh.lamp.events.*;
 import me.lokesh.lamp.service.api.Server;
 import me.lokesh.lamp.service.models.Peer;
 import me.lokesh.lamp.service.models.PeerStatus;
-import me.lokesh.lamp.service.player.Track;
 import me.lokesh.lamp.service.utils.HttpAgent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
