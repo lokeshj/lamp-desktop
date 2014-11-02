@@ -1,10 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.scene.image.*?>
+<?import java.lang.*?>
+<?import javafx.geometry.*?>
+<?import javafx.scene.effect.*?>
+<?import javafx.scene.text.*?>
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.effect.Glow?>
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.text.Font?>
+
 <GridPane alignment="CENTER" minHeight="270.0" minWidth="240.0" prefHeight="540.0" prefWidth="480.0" stylesheets="desktop.css" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="me.lokesh.lamp.ui.SignupController">
    <columnConstraints>
       <ColumnConstraints fillWidth="false" percentWidth="100.0" />
@@ -60,6 +66,14 @@
             <Font size="11.0" />
          </font>
       </Label>
+      <ImageView cache="true" fitHeight="64.0" fitWidth="64.0" pickOnBounds="true" preserveRatio="true" GridPane.halignment="CENTER" GridPane.hgrow="NEVER" GridPane.valignment="BOTTOM" GridPane.vgrow="NEVER">
+         <image>
+            <Image url="@images/icon-64.png" />
+         </image>
+         <GridPane.margin>
+            <Insets bottom="80.0" />
+         </GridPane.margin>
+      </ImageView>
    </children>
 
 </GridPane>

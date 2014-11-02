@@ -88,7 +88,7 @@ public class MainController implements Initializable, ControlledScreen {
     public void initialize(URL url, ResourceBundle resourceBundle) {
         eventBus.register(this);
 
-        logo.setGraphic(new ImageView(Shared.getLogoImage(24.0, 24.0)));
+        logo.setGraphic(new ImageView(Shared.getLogoImage(32.0, 32.0)));
         settingsButton.setGraphic(fontAwesome.create(FontAwesome.Glyph.COG).size(16));
         searchButton.setGraphic(fontAwesome.create(FontAwesome.Glyph.SEARCH).size(12));
 

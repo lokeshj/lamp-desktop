@@ -14,10 +14,10 @@ public class Shared {
     }
 
     public static Image getLogoImage(double width, double height) {
-        return new Image("/images/icon.png", width, height, true, true);
+        return new Image("/images/icon-32.png", width, height, true, true);
     }
 
     public static Image getLogoImage() {
-        return new Image("/images/icon.png");
+        return new Image("/images/icon-32.png");
     }
 }
