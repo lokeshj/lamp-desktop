@@ -9,6 +9,9 @@ import javafx.collections.ObservableMap;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.TextField;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
@@ -33,6 +36,7 @@ import org.controlsfx.glyphfont.FontAwesome;
 import org.controlsfx.glyphfont.GlyphFont;
 import org.controlsfx.glyphfont.GlyphFontRegistry;
 
+import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -41,6 +45,7 @@ import java.net.URL;
 import java.net.URLDecoder;
 import java.nio.file.Path;
 import java.util.*;
+import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorCompletionService;
 import java.util.concurrent.ExecutorService;
@@ -316,7 +321,11 @@ public class MainController implements Initializable, ControlledScreen {
                 String labelText = item.getName();
                 if (peerStatus.isPlaying()) {
                     labelText += " ( " + peerStatus.getTrack() + " )";
+                    setGraphic(fontAwesome.create(FontAwesome.Glyph.PLAY_CIRCLE).size(16.0));
+                } else {
+                    setGraphic(null);
                 }
+
                 setText(labelText);
             }
         }
