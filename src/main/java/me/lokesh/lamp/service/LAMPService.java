@@ -37,7 +37,7 @@ public class LAMPService {
         logger.info("stopping lamp service");
         discoveryService.shutdownNow();
         apiService.shutdownNow();
-        mp3Player.stop();
+        mp3Player.close();
         peerManager.stop();
         started = false;
     }

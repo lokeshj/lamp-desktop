@@ -26,7 +26,18 @@
    <children>
       <HBox alignment="CENTER_LEFT" maxHeight="50.0" prefHeight="50.0" prefWidth="480.0" style="-fx-background-color: #2c3e50;" GridPane.columnSpan="2" GridPane.rowIndex="2" GridPane.valignment="BOTTOM" GridPane.vgrow="NEVER">
          <children>
-            <Label fx:id="trackLabel" prefHeight="46.0" prefWidth="458.0" text="Not Playing Anything ... " textFill="#f8f4f4">
+            <Button fx:id="stopButton" graphicTextGap="2.0" minHeight="0.0" minWidth="0.0" mnemonicParsing="false" onAction="#stopPlayback" prefHeight="0.0" prefWidth="0.0" text="Stop">
+               <HBox.margin>
+                  <Insets left="20.0" />
+               </HBox.margin>
+               <cursor>
+                  <Cursor fx:constant="HAND" />
+               </cursor>
+               <font>
+                  <Font size="11.0" />
+               </font>
+            </Button>
+            <Label fx:id="trackLabel" prefHeight="46.0" prefWidth="400.0" text="Not Playing Anything ... " textFill="#f8f4f4" HBox.hgrow="ALWAYS">
                <HBox.margin>
                   <Insets left="20.0" right="20.0" />
                </HBox.margin>

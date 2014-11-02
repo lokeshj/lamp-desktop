@@ -7,10 +7,7 @@ import javazoom.jl.player.advanced.AdvancedPlayer;
 import javazoom.jl.player.advanced.PlaybackEvent;
 import javazoom.jl.player.advanced.PlaybackListener;
 import me.lokesh.lamp.Shared;
-import me.lokesh.lamp.events.AddToPlaylistEvent;
-import me.lokesh.lamp.events.PlaybackStartedEvent;
-import me.lokesh.lamp.events.PlaybackStoppedEvent;
-import me.lokesh.lamp.events.StartPlaybackEvent;
+import me.lokesh.lamp.events.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -52,14 +49,14 @@ public class Mp3Player {
 
     public void next() {
         if(playlistHasMore()) {
-            stop();
+            close();
             playAt(currentIndex + 1);
         }
     }
 
     public void previous() {
         if(currentIndex > 0) {
-            stop();
+            close();
             playAt(currentIndex - 1);
         }
     }
@@ -90,7 +87,13 @@ public class Mp3Player {
         }
     }
 
-    public void stop() {
+    public void stopPlayback() {
+        if (player != null) {
+            player.stop();
+        }
+    }
+
+    public void close() {
         logger.info("Stopping Audio Player");
         if (player != null) {
             player.close();
@@ -106,6 +109,11 @@ public class Mp3Player {
     @Subscribe
     public void onStartPlaybackEvent(StartPlaybackEvent event) {
         play(event.getTrack());
+    }
+
+    @Subscribe
+    public void onStopPlaybackEvent(StopPlaybackEvent event) {
+        stopPlayback();
     }
 
     @Subscribe

@@ -6,6 +6,7 @@ import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
@@ -44,6 +45,7 @@ import java.util.stream.Collectors;
 
 public class MainController implements Initializable, ControlledScreen {
     private final EventBus eventBus = Shared.getEventBus();
+    public Button stopButton;
     private ScreensPane screensPane;
 
     public Label logo;
@@ -249,6 +251,10 @@ public class MainController implements Initializable, ControlledScreen {
     public void onPlaybackStart(PlaybackStartedEvent event) {
         Platform.runLater(() -> {
             try {
+                stopButton.setGraphic(fontAwesome.create(FontAwesome.Glyph.STOP).size(12));
+                stopButton.setPrefHeight(32.0);
+                stopButton.setPrefWidth(80.0);
+                stopButton.setVisible(true);
                 System.out.println("playing "+event.getTrack());
                 String track = URLDecoder.decode(event.getTrack().getName(), "UTF-8");
                 trackLabel.setText(new File(track).getName());
@@ -260,7 +266,13 @@ public class MainController implements Initializable, ControlledScreen {
 
     @Subscribe
     public void onPlaybackEnd(PlaybackStoppedEvent event) {
-        Platform.runLater(() -> trackLabel.setText("Not Playing Anything ..."));
+        Platform.runLater(() -> {
+            trackLabel.setText("Not Playing Anything ...");
+            stopButton.setPrefHeight(0);
+            stopButton.setPrefWidth(0);
+            stopButton.setVisible(false);
+            stopButton.setGraphic(null);
+        });
     }
 
     @Subscribe
@@ -297,6 +309,11 @@ public class MainController implements Initializable, ControlledScreen {
     @Subscribe
     public void onSettingsUpdatedEvent(SettingsUpdatedEvent event) {
         loadLibrary();
+    }
+
+    @FXML
+    public void stopPlayback() {
+        eventBus.post(new StopPlaybackEvent());
     }
 
     class PeerListViewCell extends ListCell<Peer>{
