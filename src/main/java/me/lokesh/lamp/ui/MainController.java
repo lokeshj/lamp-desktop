@@ -6,7 +6,6 @@ import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
-import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
@@ -253,7 +252,8 @@ public class MainController implements Initializable, ControlledScreen {
             try {
                 stopButton.setGraphic(fontAwesome.create(FontAwesome.Glyph.STOP).size(12));
                 stopButton.setPrefHeight(32.0);
-                stopButton.setPrefWidth(80.0);
+                stopButton.setPrefWidth(75.0);
+                stopButton.setMinWidth(75.0);
                 stopButton.setVisible(true);
                 System.out.println("playing "+event.getTrack());
                 String track = URLDecoder.decode(event.getTrack().getName(), "UTF-8");
@@ -270,6 +270,7 @@ public class MainController implements Initializable, ControlledScreen {
             trackLabel.setText("Not Playing Anything ...");
             stopButton.setPrefHeight(0);
             stopButton.setPrefWidth(0);
+            stopButton.setMinWidth(0);
             stopButton.setVisible(false);
             stopButton.setGraphic(null);
         });
@@ -330,7 +331,7 @@ public class MainController implements Initializable, ControlledScreen {
                     labelText += " ( " + peerStatus.getTrack() + " )";
                     setGraphic(fontAwesome.create(FontAwesome.Glyph.PLAY_CIRCLE).size(16.0));
                 } else {
-                    setGraphic(null);
+                    setGraphic(fontAwesome.create(FontAwesome.Glyph.USER).size(16.0));
                 }
 
                 setText(labelText);
