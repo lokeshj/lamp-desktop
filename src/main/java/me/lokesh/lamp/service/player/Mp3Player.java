@@ -124,6 +124,7 @@ public class Mp3Player {
                 player.play();
             } catch (JavaLayerException e) {
                 logger.error("error in playback of {}, error=", urlAsString, e);
+                eventBus.post(new PlaybackStoppedEvent());
             } catch (IOException e) {
                 logger.error("error opening file for playback path={}, error={}", urlAsString, e);
             }
