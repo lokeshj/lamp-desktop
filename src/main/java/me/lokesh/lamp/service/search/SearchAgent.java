@@ -20,6 +20,8 @@ public class SearchAgent {
     public static AsyncRecursiveDirectoryStream local(String query) throws IOException {
         String pattern = "(?i).*";
         if (!query.isEmpty()) {
+            //escape regex special characters
+            query = query.replaceAll("([\\\\\\.\\[\\{\\(\\*\\+\\?\\^\\$\\|])", "\\\\$1");
             pattern = pattern + query.replaceAll(" ", ".*") + ".*";
         }
 
