@@ -26,10 +26,10 @@ public class LAMPService {
 
     public static void start() {
         logger.info("Starting lamp service");
-        discoveryService.execute(new Discoverer());
-        apiService.execute(new Server());
         mp3Player = new Mp3Player();
         peerManager = new PeerManager();
+        discoveryService.execute(new Discoverer());
+        apiService.execute(new Server());
         started = true;
     }
 
