@@ -57,7 +57,7 @@ public class MainController implements Initializable, ControlledScreen {
     public Circle connectionStatus;
     public ListView<String> searchResultListview;
     public StackPane mainContentPane;
-    public ListView<Peer> peerListview;
+    public ListView<Peer> peerListView;
     public ListView<String> libraryListView;
     public HBox mainToolbarBox;
 
@@ -75,7 +75,7 @@ public class MainController implements Initializable, ControlledScreen {
     private final String offlineFill = "#e1380e";
 
     private ExecutorService searchExecutor = Executors.newCachedThreadPool();
-    ExecutorCompletionService<List<Track>> completionService;
+    private ExecutorCompletionService<List<Track>> searchCompletionService;
 
     @Override
     public void setScreenParent(ScreensPane screenPage) {
@@ -110,7 +110,7 @@ public class MainController implements Initializable, ControlledScreen {
 
         networkBtn.setOnMouseClicked(event -> {
             if (networkBtn.isSelected()) {
-                peerListview.toFront();
+                peerListView.toFront();
             } else {
                 networkBtn.setSelected(true);
             }
@@ -141,8 +141,8 @@ public class MainController implements Initializable, ControlledScreen {
         });
 
         peerList = FXCollections.observableArrayList();
-        peerListview.setItems(peerList);
-        peerListview.setCellFactory(param -> new PeerListViewCell());
+        peerListView.setItems(peerList);
+        peerListView.setCellFactory(param -> new PeerListViewCell());
 
         loadLibrary();
         libraryListView.setOnMouseClicked(event -> {
@@ -153,7 +153,7 @@ public class MainController implements Initializable, ControlledScreen {
             }
         });
 
-        peerListview.setPlaceholder(new Label("No Peers are online"));
+        peerListView.setPlaceholder(new Label("No Peers are online"));
         libraryListView.setPlaceholder(new Label("No MP3 files found"));
     }
 
@@ -208,10 +208,10 @@ public class MainController implements Initializable, ControlledScreen {
 
         searchResultListview.setPlaceholder(new Label("Searching ..."));
 
-        completionService = new ExecutorCompletionService<>(searchExecutor);
-        completionService.submit(() -> SearchAgent.remote("localhost", query));
+        searchCompletionService = new ExecutorCompletionService<>(searchExecutor);
+        searchCompletionService.submit(() -> SearchAgent.remote("localhost", query));
         for (Peer peer : peerList) {
-            completionService.submit(() -> SearchAgent.remote(peer.getIpAddress(), query));
+            searchCompletionService.submit(() -> SearchAgent.remote(peer.getIpAddress(), query));
         }
 
         searchResultUrlList = new LinkedList<>();
@@ -224,21 +224,27 @@ public class MainController implements Initializable, ControlledScreen {
             ObservableList<String> nameList = FXCollections.observableArrayList();
             searchResultListview.setItems(nameList);
 
-            for (int i = 0; i < peerList.size() + 1; ++i) {
-                try {
-                    List<Track> results = completionService.take().get();
-                    for (Track result : results) {
-                        nameList.add(result.getName());
-                        searchResultUrlList.add(result);
+            //execute this in another thread so that
+            //ui remains responsive
+            searchExecutor.execute(() -> {
+                for (int i = 0; i < peerList.size() + 1; ++i) {
+                    try {
+                        List<Track> results = searchCompletionService.take().get();
+                        for (Track result : results) {
+                            Platform.runLater(() -> {
+                                nameList.add(result.getName());
+                                searchResultUrlList.add(result);
+                            });
+                        }
+                    } catch (InterruptedException | ExecutionException e) {
+                        e.printStackTrace();
                     }
-                } catch (InterruptedException | ExecutionException e) {
-                    e.printStackTrace();
                 }
-            }
 
-            if (nameList.size() == 0) {
-                searchResultListview.setPlaceholder(new Label("No Results found"));
-            }
+                if (nameList.size() == 0) {
+                    Platform.runLater(() -> searchResultListview.setPlaceholder(new Label("No Results found")));
+                }
+            });
         });
     }
 

@@ -1,10 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import java.lang.*?>
-<?import javafx.scene.*?>
-<?import javafx.scene.effect.*?>
-<?import javafx.scene.shape.*?>
-<?import javafx.scene.text.*?>
 <?import javafx.geometry.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.Cursor?>
@@ -12,7 +7,6 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.shape.Circle?>
 <?import javafx.scene.text.Font?>
-
 <GridPane prefHeight="540.0" prefWidth="480.0" style="-fx-background-color: white;" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="me.lokesh.lamp.ui.MainController">
   <columnConstraints>
     <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" percentWidth="50.0" prefWidth="100.0" />
@@ -103,7 +97,7 @@
                <children>
                   <ListView fx:id="libraryListView" prefHeight="200.0" prefWidth="200.0" StackPane.alignment="CENTER" />
                   <ListView fx:id="searchResultListview" cache="true" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="365.0" prefWidth="440.0" StackPane.alignment="CENTER" />
-                  <ListView fx:id="peerListview" prefHeight="200.0" prefWidth="200.0" StackPane.alignment="CENTER" />
+                  <ListView fx:id="peerListView" prefHeight="200.0" prefWidth="200.0" StackPane.alignment="CENTER" />
                </children>
                <VBox.margin>
                   <Insets top="5.0" />
