@@ -61,7 +61,7 @@
                         <Cursor fx:constant="DEFAULT" />
                      </cursor>
                      <HBox.margin>
-                        <Insets right="5.0"/>
+                        <Insets right="5.0" />
                      </HBox.margin>
                   </Circle>
                   <Label fx:id="deviceNameLabel" />
@@ -100,21 +100,37 @@
                <children>
                   <VBox fx:id="searchResultCtr" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="365.0" prefWidth="440.0" spacing="10.0" style="-fx-background-color: white;">
                      <children>
-                        <Label fx:id="searchDescription" maxWidth="1.7976931348623157E308" minHeight="20.0" minWidth="440.0" prefHeight="20.0" prefWidth="440.0" text="Search Results" VBox.vgrow="NEVER">
-                           <font>
-                              <Font name="System Bold" size="13.0" />
-                           </font>
-                        </Label>
+                        <HBox prefHeight="26.0" prefWidth="440.0" VBox.vgrow="NEVER">
+                           <children>
+                              <ProgressIndicator fx:id="searchLoadIndicator" prefHeight="26.0" prefWidth="27.0" HBox.hgrow="NEVER">
+                                 <HBox.margin>
+                                    <Insets right="5.0" />
+                                 </HBox.margin></ProgressIndicator>
+                              <Label fx:id="searchDescription" maxWidth="1.7976931348623157E308" minHeight="20.0" minWidth="400.0" prefHeight="24.0" prefWidth="400.0" text="Search Results" HBox.hgrow="ALWAYS">
+                                 <font>
+                                    <Font name="System Bold" size="13.0" />
+                                 </font>
+                              </Label>
+                           </children>
+                        </HBox>
                         <ListView fx:id="searchResultListview" cache="true" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="365.0" prefWidth="440.0" VBox.vgrow="ALWAYS" />
                      </children>
                   </VBox>
                   <VBox fx:id="libraryCtr" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="365.0" prefWidth="440.0" spacing="10.0" style="-fx-background-color: white;">
                      <children>
-                        <Label fx:id="libraryDescription" maxWidth="1.7976931348623157E308" prefWidth="440.0" VBox.vgrow="NEVER">
-                           <font>
-                              <Font name="System Bold" size="13.0" />
-                           </font>
-                        </Label>
+                        <HBox prefHeight="26.0" prefWidth="440.0" VBox.vgrow="NEVER">
+                           <children>
+                              <ProgressIndicator fx:id="libraryLoadIndicator" visible="false" HBox.hgrow="NEVER">
+                                 <HBox.margin>
+                                    <Insets right="5.0" />
+                                 </HBox.margin></ProgressIndicator>
+                              <Label fx:id="libraryDescription" maxWidth="1.7976931348623157E308" prefHeight="24.0" prefWidth="423.0" HBox.hgrow="ALWAYS">
+                                 <font>
+                                    <Font name="System Bold" size="13.0" />
+                                 </font>
+                              </Label>
+                           </children>
+                        </HBox>
                         <ListView fx:id="libraryListView" prefHeight="340.0" prefWidth="440.0" VBox.vgrow="ALWAYS" />
                      </children>
                   </VBox>

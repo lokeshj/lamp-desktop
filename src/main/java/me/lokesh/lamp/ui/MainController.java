@@ -10,6 +10,7 @@ import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
@@ -47,7 +48,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorCompletionService;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.stream.Collectors;
 
 public class MainController implements Initializable, ControlledScreen {
     private final Logger logger = LoggerFactory.getLogger(MainController.class);
@@ -68,10 +68,12 @@ public class MainController implements Initializable, ControlledScreen {
     public ListView<String> libraryListView;
     public HBox mainToolbarBox;
     public Button stopButton;
-    public Label searchDescription;
     public VBox searchResultCtr;
+    public Label searchDescription;
+    public ProgressIndicator searchLoadIndicator;
     public VBox libraryCtr;
     public Label libraryDescription;
+    public ProgressIndicator libraryLoadIndicator;
 
     private ToggleButton peersButton;
     private ToggleButton libraryButton;
@@ -217,7 +219,7 @@ public class MainController implements Initializable, ControlledScreen {
 
         searchAndPopulate(loadLibraryOf, libraryLoadCompletionService, libraryLoaderExecutor,
                 "", libraryTrackList, libraryDescription, descriptionStaticText,
-                libraryListView, emptyLabel, null, null);
+                libraryListView, emptyLabel, null, null, libraryLoadIndicator);
     }
 
     @FXML
@@ -237,16 +239,14 @@ public class MainController implements Initializable, ControlledScreen {
 
         searchAndPopulate(null, searchCompletionService, searchExecutor, query,
                 searchResultTrackList, searchDescription, staticText, searchResultListview,
-                emptyLabel, searchResultsButton, searchResultCtr);
+                emptyLabel, searchResultsButton, searchResultCtr, searchLoadIndicator);
     }
 
-    private void searchAndPopulate(final Peer target,
-                                   final ExecutorCompletionService<List<Track>> completionService,
-                                   final ExecutorService executor,
-                                   String query, List<Track> trackList,
+    private void searchAndPopulate(final Peer target, final ExecutorCompletionService<List<Track>> completionService,
+                                   final ExecutorService executor, String query, List<Track> trackList,
                                    Label descriptionLabel, String descriptionStaticText,
                                    ListView<String> listView, String emptyLabel,
-                                   ToggleButton button, VBox container)
+                                   ToggleButton button, Node container, ProgressIndicator indicator)
     {
         final int numTarget = (target == null) ? peerList.size() + 1 : 0;
         if(target == null) {
@@ -266,6 +266,10 @@ public class MainController implements Initializable, ControlledScreen {
                 button.setVisible(true);
                 container.toFront();
             }
+
+            indicator.setVisible(true);
+            indicator.setPrefWidth(18.0);
+            indicator.setPrefHeight(18.0);
 
             SimpleIntegerProperty resultCount = new SimpleIntegerProperty(0);
             descriptionLabel.textProperty().bind(Bindings.concat(resultCount, descriptionStaticText));
@@ -292,9 +296,14 @@ public class MainController implements Initializable, ControlledScreen {
                     }
                 }
 
-                if (nameList.size() == 0) {
-                    Platform.runLater(() -> listView.setPlaceholder(new Label(emptyLabel)));
-                }
+                Platform.runLater(() -> {
+                    indicator.setVisible(false);
+                    indicator.setPrefWidth(0);
+                    indicator.setPrefHeight(0);
+                    if (nameList.size() == 0) {
+                        listView.setPlaceholder(new Label(emptyLabel));
+                    }
+                });
             });
 
         });
