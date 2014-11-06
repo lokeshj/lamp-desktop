@@ -25,7 +25,7 @@ import java.util.Enumeration;
  */
 public class Discoverer implements Runnable {
     private static final Logger logger = LoggerFactory.getLogger(Discoverer.class);
-    private final EventBus eventBus = Shared.getEventBus();
+    private static final EventBus eventBus = Shared.getEventBus();
 
     private static final int DISCOVERY_PORT = 15491;
     private static final int TIMEOUT_MS = 500;
@@ -37,21 +37,17 @@ public class Discoverer implements Runnable {
             socket.setBroadcast(true);
             socket.setSoTimeout(TIMEOUT_MS);
 
-            while (true) {
-                try {
-                    broadcastStatus(socket);
-                    eventBus.post(new NetworkSuccessEvent());
-                } catch (Exception e) {
-                    logger.error("error in creating/sending packet",e);
-                    eventBus.post(new NetworkErrorEvent());
-                } finally {
-                    receiveStatus(socket);
-                    Thread.sleep(200);
-                }
+            try {
+                broadcastStatus(socket);
+                eventBus.post(new NetworkSuccessEvent());
+            } catch (Exception e) {
+                logger.error("error in creating/sending packet",e);
+                eventBus.post(new NetworkErrorEvent());
+            } finally {
+                receiveStatus(socket);
+                socket.close();
             }
 
-        } catch (InterruptedException e) {
-            logger.info("Discoverer Stopped!");
         } catch (IOException e) {
             logger.error("Could not send discovery request", e);
         }

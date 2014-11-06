@@ -173,17 +173,21 @@ public class MainController implements Initializable, ControlledScreen {
     }
 
     private void showPeerChoiceDialogAndPlay(Track selectedItem) {
-        List<Peer> choices = new LinkedList<>();
-        Peer local = new Peer();
-        local.setIpAddress(SystemProperties.getIPAddress());
-        local.setName(Config.getDeviceName().getValue());
-        choices.add(local);
-        choices.addAll(peerList.stream().collect(Collectors.toList()));
+        //if no one is online than start playback on localhost without showing
+        //the pointless choice dialog
+        if (peerList.size() == 0) {
+            lastSelectedPeer = localhost;
+            eventBus.post(new StartRemotePlaybackEvent(localhost.getIpAddress(), selectedItem));
+            return;
+        }
 
+        List<Peer> choices = new LinkedList<>();
+        choices.add(localhost);
+        choices.addAll(peerList.stream().collect(Collectors.toList()));
 
         ChoiceDialog<Peer> dialog;
         if(lastSelectedPeer == null) {
-            dialog = new ChoiceDialog<>(local, choices);
+            dialog = new ChoiceDialog<>(localhost, choices);
         } else {
             dialog = new ChoiceDialog<>(lastSelectedPeer, choices);
         }
@@ -200,15 +204,15 @@ public class MainController implements Initializable, ControlledScreen {
         }
     }
 
-    private void refreshLibrary(Peer target) {
-        libraryLoadCompletionService = new ExecutorCompletionService<List<Track>>(libraryLoaderExecutor);
+    private void refreshLibrary(Peer loadLibraryOf) {
+        libraryLoadCompletionService = new ExecutorCompletionService<>(libraryLoaderExecutor);
         libraryTrackList = new LinkedList<>();
 
         int userCount = peerList.size() + 1;
         String descriptionStaticText = " Songs from " + userCount + " users";
         String emptyLabel = "No MP3 files found";
 
-        searchAndPopulate(target, libraryLoadCompletionService, libraryLoaderExecutor,
+        searchAndPopulate(loadLibraryOf, libraryLoadCompletionService, libraryLoaderExecutor,
                 "", libraryTrackList, libraryDescription, descriptionStaticText,
                 libraryListView, emptyLabel, null, null);
     }
@@ -345,6 +349,7 @@ public class MainController implements Initializable, ControlledScreen {
         Platform.runLater(() -> {
             peerList.add(event.getPeer());
             peersButton.setText("Peers (" + peerList.size() + ")");
+            refreshLibrary(null);
         });
     }
 
@@ -354,6 +359,7 @@ public class MainController implements Initializable, ControlledScreen {
         Platform.runLater(() -> {
             peerList.remove(event.getPeer());
             peersButton.setText("Peers (" + peerList.size() + ")");
+            refreshLibrary(null);
         });
     }
 

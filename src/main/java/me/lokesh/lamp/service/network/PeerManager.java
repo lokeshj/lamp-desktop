@@ -43,7 +43,7 @@ public class PeerManager {
         peerStatusTimeMap = new LinkedHashMap<>();
 
         executorService.scheduleAtFixedRate(new PeerStatusCheckRunnable(),
-                TIMEOUT, TIMEOUT, TimeUnit.NANOSECONDS);
+                2 * TIMEOUT, TIMEOUT, TimeUnit.NANOSECONDS);
     }
 
     public void stop() {

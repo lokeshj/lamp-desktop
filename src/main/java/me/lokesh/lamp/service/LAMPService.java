@@ -9,6 +9,8 @@ import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Created by lokesh.
@@ -16,11 +18,12 @@ import java.util.concurrent.Executors;
 public class LAMPService {
     private static final Logger logger = LoggerFactory.getLogger(LAMPService.class);
 
-    private static ExecutorService discoveryService = Executors.newSingleThreadExecutor();
+    private static ScheduledExecutorService discoveryService = Executors.newSingleThreadScheduledExecutor();
     private static ExecutorService apiService = Executors.newSingleThreadExecutor();
 
     private static Mp3Player mp3Player;
     private static PeerManager peerManager;
+    private static Discoverer discoverer;
 
     private static boolean started = false;
 
@@ -28,9 +31,11 @@ public class LAMPService {
         logger.info("Starting lamp service");
         mp3Player = new Mp3Player();
         peerManager = new PeerManager();
-        discoveryService.execute(new Discoverer());
+        discoverer = new Discoverer();
+        discoveryService.scheduleAtFixedRate(discoverer, 100, 500, TimeUnit.MILLISECONDS);
         apiService.execute(new Server());
         started = true;
+        logger.info("lamp service started");
     }
 
     public static void stop() {
@@ -40,6 +45,7 @@ public class LAMPService {
         mp3Player.close();
         peerManager.stop();
         started = false;
+        logger.info("lamp service stopped");
     }
 
     public static boolean isStarted() {
@@ -51,5 +57,8 @@ public class LAMPService {
     }
     public static Mp3Player getMp3Player() {
         return mp3Player;
+    }
+    public static Discoverer getDiscoverer() {
+        return discoverer;
     }
 }
