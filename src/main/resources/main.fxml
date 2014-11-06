@@ -51,9 +51,6 @@
          <padding>
             <Insets left="20.0" />
          </padding>
-         <effect>
-            <Glow level="0.12" />
-         </effect>
       </Label>
       <HBox maxHeight="54.0" prefHeight="54.0" prefWidth="200.0" GridPane.columnIndex="1" GridPane.halignment="RIGHT" GridPane.valignment="TOP" GridPane.vgrow="NEVER">
          <children>

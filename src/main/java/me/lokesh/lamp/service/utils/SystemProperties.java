@@ -1,5 +1,6 @@
 package me.lokesh.lamp.service.utils;
 
+import me.lokesh.lamp.service.models.Peer;
 import org.apache.http.conn.util.InetAddressUtils;
 
 import java.net.InetAddress;
@@ -51,5 +52,19 @@ public class SystemProperties {
 
     public static boolean isOSAndroid() {
         return OS.startsWith("android");
+    }
+    
+    public static String getOs() {
+        if (SystemProperties.isOSWindows()) {
+            return Peer.WINDOWS;
+        } else if (SystemProperties.isOSLinux()) {
+            return Peer.LINUX;
+        } else if (SystemProperties.isOSMac()) {
+            return Peer.MACOS;
+        } else if (SystemProperties.isOSAndroid()) {
+            return Peer.ANDROID;
+        } else {
+            return Peer.UNKNOWN;
+        }
     }
 }

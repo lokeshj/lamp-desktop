@@ -16,6 +16,15 @@ public class Peer {
     String os;
     String ipAddress;
 
+    public Peer() {
+    }
+
+    public Peer(String name, String os, String ipAddress) {
+        this.name = name;
+        this.os = os;
+        this.ipAddress = ipAddress;
+    }
+
     public String getIpAddress() {
         return ipAddress;
     }

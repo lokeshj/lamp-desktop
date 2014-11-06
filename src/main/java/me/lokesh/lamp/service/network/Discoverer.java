@@ -70,17 +70,7 @@ public class Discoverer implements Runnable {
         Peer peer = new Peer();
         peer.setIpAddress(SystemProperties.getIPAddress());
         peer.setName(Config.getDeviceName().getValue());
-        if (SystemProperties.isOSWindows()) {
-            peer.setOs(Peer.WINDOWS);
-        } else if (SystemProperties.isOSLinux()) {
-            peer.setOs(Peer.LINUX);
-        } else if (SystemProperties.isOSMac()) {
-            peer.setOs(Peer.MACOS);
-        } else if (SystemProperties.isOSAndroid()) {
-            peer.setOs(Peer.ANDROID);
-        } else {
-            peer.setOs(Peer.UNKNOWN);
-        }
+        peer.setOs(SystemProperties.getOs());
 
         Mp3Player player = LAMPService.getMp3Player();
         Track track = player.getCurrentTrack();

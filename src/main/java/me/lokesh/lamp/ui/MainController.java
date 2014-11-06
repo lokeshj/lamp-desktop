@@ -88,6 +88,9 @@ public class MainController implements Initializable, ControlledScreen {
     private ExecutorService libraryLoaderExecutor = Executors.newCachedThreadPool();
     private ExecutorCompletionService<List<Track>> libraryLoadCompletionService;
 
+    private final Peer localhost = new Peer(Config.getDeviceName().getValue(),
+            SystemProperties.getOs(), SystemProperties.getIPAddress());
+
     @Override
     public void setScreenParent(ScreensPane screenPage) {
         screensPane = screenPage;
@@ -166,52 +169,7 @@ public class MainController implements Initializable, ControlledScreen {
         peerListView.setPlaceholder(new Label("No Peers are online"));
         libraryListView.setPlaceholder(new Label("Loading ..."));
 
-        loadLibrary();
-    }
-
-    private void loadLibrary() {
-        libraryLoadCompletionService = new ExecutorCompletionService<>(libraryLoaderExecutor);
-        libraryLoadCompletionService.submit(() -> SearchAgent.remote("localhost", ""));
-        for (Peer peer : peerList) {
-            libraryLoadCompletionService.submit(() -> SearchAgent.remote(peer.getIpAddress(), ""));
-        }
-
-        libraryTrackList = new LinkedList<>();
-
-        Platform.runLater(() -> {
-            SimpleIntegerProperty resultCount = new SimpleIntegerProperty(0);
-
-            int userCount = peerList.size() + 1;
-            libraryDescription.textProperty().bind(Bindings.concat(resultCount,
-                    " Songs from " + userCount + " users"));
-
-            ObservableList<String> nameList = FXCollections.observableArrayList();
-            libraryListView.setItems(nameList);
-
-            //execute this in another thread so that
-            //ui remains responsive
-            libraryLoaderExecutor.execute(() -> {
-                for (int i = 0; i < peerList.size() + 1; ++i) {
-                    try {
-                        List<Track> results = libraryLoadCompletionService.take().get();
-                        for (Track result : results) {
-                            Platform.runLater(() -> {
-                                resultCount.setValue(resultCount.getValue() + 1);
-                                nameList.add(result.getName());
-                                libraryTrackList.add(result);
-                            });
-                        }
-                    } catch (InterruptedException | ExecutionException e) {
-                        e.printStackTrace();
-                    }
-                }
-
-                if (nameList.size() == 0) {
-                    Platform.runLater(() -> libraryListView.setPlaceholder(new Label("No MP3 files found")));
-                }
-            });
-
-        });
+        refreshLibrary(null);
     }
 
     private void showPeerChoiceDialogAndPlay(Track selectedItem) {
@@ -242,6 +200,19 @@ public class MainController implements Initializable, ControlledScreen {
         }
     }
 
+    private void refreshLibrary(Peer target) {
+        libraryLoadCompletionService = new ExecutorCompletionService<List<Track>>(libraryLoaderExecutor);
+        libraryTrackList = new LinkedList<>();
+
+        int userCount = peerList.size() + 1;
+        String descriptionStaticText = " Songs from " + userCount + " users";
+        String emptyLabel = "No MP3 files found";
+
+        searchAndPopulate(target, libraryLoadCompletionService, libraryLoaderExecutor,
+                "", libraryTrackList, libraryDescription, descriptionStaticText,
+                libraryListView, emptyLabel, null, null);
+    }
+
     @FXML
     public void search() {
         String query = searchTextfield.getText().trim().replaceAll("\"", "");
@@ -250,39 +221,65 @@ public class MainController implements Initializable, ControlledScreen {
         }
 
         searchResultListview.setPlaceholder(new Label("Searching ..."));
-
         searchCompletionService = new ExecutorCompletionService<>(searchExecutor);
-        searchCompletionService.submit(() -> SearchAgent.remote("localhost", query));
-        for (Peer peer : peerList) {
-            searchCompletionService.submit(() -> SearchAgent.remote(peer.getIpAddress(), query));
-        }
-
         searchResultTrackList = new LinkedList<>();
 
-        Platform.runLater(() -> {
-            SimpleIntegerProperty resultCount = new SimpleIntegerProperty(0);
-            int userCount = peerList.size() + 1;
-            searchDescription.textProperty().bind(Bindings.concat(resultCount,  " Results for \"" +
-                    query + "\" from " + userCount + " users"));
+        int userCount = peerList.size() + 1;
+        String staticText = " Results for \"" + query + "\" from " + userCount + " users";
+        String emptyLabel = "No Results found";
 
-            searchResultsButton.setSelected(true);
-            searchResultsButton.setVisible(true);
-            searchResultCtr.toFront();
+        searchAndPopulate(null, searchCompletionService, searchExecutor, query,
+                searchResultTrackList, searchDescription, staticText, searchResultListview,
+                emptyLabel, searchResultsButton, searchResultCtr);
+    }
+
+    private void searchAndPopulate(final Peer target,
+                                   final ExecutorCompletionService<List<Track>> completionService,
+                                   final ExecutorService executor,
+                                   String query, List<Track> trackList,
+                                   Label descriptionLabel, String descriptionStaticText,
+                                   ListView<String> listView, String emptyLabel,
+                                   ToggleButton button, VBox container)
+    {
+        if(target == null) {
+            completionService.submit(() -> SearchAgent.remote(localhost.getIpAddress(), query));
+            for (Peer peer : peerList) {
+                completionService.submit(() -> SearchAgent.remote(peer.getIpAddress(), query));
+            }
+        } else {
+            completionService.submit(() -> SearchAgent.remote(target.getIpAddress(), query));
+        }
+
+
+        Platform.runLater(() -> {
+            if(button != null && container != null) {
+                button.setSelected(true);
+                button.setVisible(true);
+                container.toFront();
+            }
+
+            SimpleIntegerProperty resultCount = new SimpleIntegerProperty(0);
+            descriptionLabel.textProperty().bind(Bindings.concat(resultCount, descriptionStaticText));
 
             ObservableList<String> nameList = FXCollections.observableArrayList();
-            searchResultListview.setItems(nameList);
+            listView.setItems(nameList);
 
             //execute this in another thread so that
             //ui remains responsive
-            searchExecutor.execute(() -> {
-                for (int i = 0; i < peerList.size() + 1; ++i) {
+            executor.execute(() -> {
+                int numTarget = 1;
+                if (target != null) {
+                    numTarget = peerList.size() + 1;
+                }
+
+                for (int i = 0; i < numTarget; ++i) {
                     try {
-                        List<Track> results = searchCompletionService.take().get();
+                        List<Track> results = completionService.take().get();
                         for (Track result : results) {
                             Platform.runLater(() -> {
                                 resultCount.setValue(resultCount.getValue() + 1);
                                 nameList.add(result.getName());
-                                searchResultTrackList.add(result);
+                                trackList.add(result);
                             });
                         }
                     } catch (InterruptedException | ExecutionException e) {
@@ -291,9 +288,10 @@ public class MainController implements Initializable, ControlledScreen {
                 }
 
                 if (nameList.size() == 0) {
-                    Platform.runLater(() -> searchResultListview.setPlaceholder(new Label("No Results found")));
+                    Platform.runLater(() -> listView.setPlaceholder(new Label(emptyLabel)));
                 }
             });
+
         });
     }
 
@@ -370,7 +368,7 @@ public class MainController implements Initializable, ControlledScreen {
 
     @Subscribe
     public void onSettingsUpdatedEvent(SettingsUpdatedEvent event) {
-        loadLibrary();
+        refreshLibrary(null);
     }
 
     @FXML
