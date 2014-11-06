@@ -186,7 +186,7 @@ public class MainController implements Initializable, ControlledScreen {
 
         List<Peer> choices = new LinkedList<>();
         choices.add(localhost);
-        choices.addAll(peerList.stream().collect(Collectors.toList()));
+        choices.addAll(peerList);
 
         ChoiceDialog<Peer> dialog;
         if(lastSelectedPeer == null) {
@@ -248,7 +248,7 @@ public class MainController implements Initializable, ControlledScreen {
                                    ListView<String> listView, String emptyLabel,
                                    ToggleButton button, VBox container)
     {
-        int numTarget = (target == null) ? peerList.size() + 1 : 0;
+        final int numTarget = (target == null) ? peerList.size() + 1 : 0;
         if(target == null) {
             logger.info("loading library of all peers");
             completionService.submit(() -> SearchAgent.remote(localhost.getIpAddress(), query));
@@ -370,6 +370,10 @@ public class MainController implements Initializable, ControlledScreen {
         Platform.runLater(() -> {
             peerList.remove(event.getOldPeer());
             peerList.add(event.getNewPeer());
+            if(event.isLibraryUpdated()) {
+                logger.info("library of peer {} updated", event.getNewPeer().getIpAddress());
+                refreshLibrary(null);
+            }
         });
     }
 

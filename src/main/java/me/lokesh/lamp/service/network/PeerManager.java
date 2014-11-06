@@ -79,7 +79,7 @@ public class PeerManager {
             Peer oldPeer = peerStatusMap.get(ipAddress).getPeer();
 
             if (!oldStatus.equals(peerStatus)) {
-                eventBus.post(new PeerUpdateEvent(oldPeer, peer));
+                eventBus.post(new PeerUpdateEvent(oldPeer, peer, peerStatus.isLibraryUpdated()));
             }
             peerStatusMap.replace(ipAddress, peerStatus);
         }

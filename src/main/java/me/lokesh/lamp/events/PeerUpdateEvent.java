@@ -8,10 +8,12 @@ import me.lokesh.lamp.service.models.Peer;
 public class PeerUpdateEvent {
     private Peer oldPeer;
     private Peer newPeer;
+    private boolean libraryUpdated;
 
-    public PeerUpdateEvent(Peer oldPeer, Peer newPeer) {
+    public PeerUpdateEvent(Peer oldPeer, Peer newPeer, boolean libraryUpdated) {
         this.oldPeer = oldPeer;
         this.newPeer = newPeer;
+        this.libraryUpdated = libraryUpdated;
     }
 
     public Peer getOldPeer() {
@@ -28,5 +30,13 @@ public class PeerUpdateEvent {
 
     public void setNewPeer(Peer newPeer) {
         this.newPeer = newPeer;
+    }
+
+    public boolean isLibraryUpdated() {
+        return libraryUpdated;
+    }
+
+    public void setLibraryUpdated(boolean libraryUpdated) {
+        this.libraryUpdated = libraryUpdated;
     }
 }

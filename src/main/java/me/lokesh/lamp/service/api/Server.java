@@ -121,6 +121,7 @@ public class Server implements Runnable{
 
         private Response handleSearch(Properties parms) {
             String query = parms.getProperty("q");
+            logger.info("got search request. query={}", query);
 
             if (query != null) {
                 List<Track> results = new LinkedList<>();

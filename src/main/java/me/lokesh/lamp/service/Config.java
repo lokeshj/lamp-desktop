@@ -2,6 +2,8 @@ package me.lokesh.lamp.service;
 
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 
 import java.io.File;
 import java.nio.file.Path;
@@ -19,6 +21,7 @@ public class Config {
 
     private static StringProperty deviceName = new SimpleStringProperty("");
     private static StringProperty musicFolderPath = new SimpleStringProperty("");
+    private static boolean musicFolderUpdated = false;
 
     private static final String KEY_DEVICE_NAME = "devicename";
     private static final String KEY_MUSIC_FOLDER_PATH = "musicFolderPath";
@@ -41,6 +44,9 @@ public class Config {
 
     public static void save(String name, String musicfolderpath) {
         try {
+            if (!prefs.get(KEY_MUSIC_FOLDER_PATH, "").equals(musicfolderpath)) {
+                musicFolderUpdated = true;
+            }
             prefs.put(KEY_DEVICE_NAME, deviceName.getValue());
             prefs.put(KEY_MUSIC_FOLDER_PATH, musicfolderpath);
             prefs.flush();
@@ -52,14 +58,6 @@ public class Config {
         } catch (BackingStoreException e) {
             e.printStackTrace();
         }
-    }
-
-    public static void saveDeviceName(String name) {
-        save(name, musicFolderPath.getValue());
-    }
-
-    public static void saveMusicFolderPath(String musicFolderPath) {
-        save(deviceName.getValue(), musicFolderPath);
     }
 
     public static boolean isRegistered() {
@@ -85,5 +83,13 @@ public class Config {
             load();
         }
         return new File(musicFolderPath.getValue()).toPath();
+    }
+
+    public static boolean isMusicFolderUpdated() {
+        if(musicFolderUpdated) {
+            musicFolderUpdated = false;
+            return true;
+        }
+        return false;
     }
 }

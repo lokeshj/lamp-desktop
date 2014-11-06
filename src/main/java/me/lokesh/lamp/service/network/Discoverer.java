@@ -75,6 +75,8 @@ public class Discoverer implements Runnable {
         peerStatus.setPlaying(player.isPlaying());
         peerStatus.setPlayedBy("");
         peerStatus.setPlayedFrom("");
+        peerStatus.setLibraryUpdated(Config.isMusicFolderUpdated());
+
         if(track != null) {
             peerStatus.setTrack(track.getName());
         } else  {

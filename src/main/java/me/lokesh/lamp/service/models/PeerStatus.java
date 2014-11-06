@@ -6,6 +6,7 @@ package me.lokesh.lamp.service.models;
 public class PeerStatus {
     Peer peer;
     boolean playing;
+    boolean libraryUpdated;
     String track;
     String playedBy;        //name of the node which started playback on this node
     String playedFrom;      //source node's name
@@ -50,6 +51,14 @@ public class PeerStatus {
         this.playedFrom = playedFrom;
     }
 
+    public boolean isLibraryUpdated() {
+        return libraryUpdated;
+    }
+
+    public void setLibraryUpdated(boolean libraryUpdated) {
+        this.libraryUpdated = libraryUpdated;
+    }
+
     @Override
     public boolean equals(Object obj) {
         if(obj instanceof PeerStatus) {
@@ -58,16 +67,18 @@ public class PeerStatus {
                     playing == other.isPlaying() &&
                     track.equals(other.getTrack()) &&
                     playedBy.equals(other.getPlayedBy()) &&
-                    playedFrom.equals(other.getPlayedFrom());
+                    playedFrom.equals(other.getPlayedFrom()) &&
+                    libraryUpdated == other.isLibraryUpdated();
         }
         return false;
     }
 
     @Override
     public String toString() {
-        return "NodeStatus{" +
-                "node=" + peer +
+        return "PeerStatus{" +
+                "peer=" + peer +
                 ", playing=" + playing +
+                ", libraryUpdated=" + libraryUpdated +
                 ", track='" + track + '\'' +
                 ", playedBy='" + playedBy + '\'' +
                 ", playedFrom='" + playedFrom + '\'' +
