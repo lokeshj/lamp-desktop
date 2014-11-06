@@ -44,7 +44,7 @@ public class Main extends Application {
 
         root.getChildren().addAll(mainContainer);
 
-        Scene scene = new Scene(root, 480, 540);
+        Scene scene = new Scene(root, 480, 640);
         primaryStage.setScene(scene);
         primaryStage.setTitle(TITLE);
         primaryStage.setMinHeight(270.0);

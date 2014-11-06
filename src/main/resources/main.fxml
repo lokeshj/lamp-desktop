@@ -13,7 +13,7 @@
 <?import javafx.scene.shape.Circle?>
 <?import javafx.scene.text.Font?>
 
-<GridPane prefHeight="540.0" prefWidth="480.0" style="-fx-background-color: white;" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="me.lokesh.lamp.ui.MainController">
+<GridPane prefHeight="640.0" prefWidth="480.0" style="-fx-background-color: white;" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="me.lokesh.lamp.ui.MainController">
   <columnConstraints>
     <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" percentWidth="50.0" prefWidth="100.0" />
       <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" percentWidth="50.0" prefWidth="100.0" />
@@ -73,7 +73,7 @@
                </cursor></Button>
          </children>
       </HBox>
-      <VBox fx:id="mainContentArea" prefHeight="200.0" prefWidth="100.0" GridPane.columnSpan="2" GridPane.rowIndex="1">
+      <VBox fx:id="mainContentArea" prefHeight="500.0" prefWidth="100.0" GridPane.columnSpan="2" GridPane.rowIndex="1">
          <children>
             <HBox alignment="TOP_CENTER" prefHeight="36.0" prefWidth="440.0">
                <children>
@@ -96,7 +96,7 @@
                </VBox.margin>
             </HBox>
             <HBox fx:id="mainToolbarBox" prefHeight="10.0" prefWidth="440.0" VBox.vgrow="NEVER" />
-            <StackPane fx:id="mainContentPane" prefHeight="365.0" prefWidth="440.0" VBox.vgrow="ALWAYS">
+            <StackPane fx:id="mainContentPane" prefHeight="465.0" prefWidth="440.0" VBox.vgrow="ALWAYS">
                <children>
                   <VBox fx:id="searchResultCtr" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="365.0" prefWidth="440.0" spacing="10.0" style="-fx-background-color: white;">
                      <children>
