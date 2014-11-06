@@ -32,6 +32,8 @@ import org.controlsfx.control.SegmentedButton;
 import org.controlsfx.glyphfont.FontAwesome;
 import org.controlsfx.glyphfont.GlyphFont;
 import org.controlsfx.glyphfont.GlyphFontRegistry;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.UnsupportedEncodingException;
@@ -48,6 +50,7 @@ import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
 public class MainController implements Initializable, ControlledScreen {
+    private final Logger logger = LoggerFactory.getLogger(MainController.class);
     private final EventBus eventBus = Shared.getEventBus();
     private ScreensPane screensPane;
 
@@ -245,15 +248,17 @@ public class MainController implements Initializable, ControlledScreen {
                                    ListView<String> listView, String emptyLabel,
                                    ToggleButton button, VBox container)
     {
+        int numTarget = (target == null) ? peerList.size() + 1 : 0;
         if(target == null) {
+            logger.info("loading library of all peers");
             completionService.submit(() -> SearchAgent.remote(localhost.getIpAddress(), query));
             for (Peer peer : peerList) {
                 completionService.submit(() -> SearchAgent.remote(peer.getIpAddress(), query));
             }
         } else {
+            logger.info("loading local library");
             completionService.submit(() -> SearchAgent.remote(target.getIpAddress(), query));
         }
-
 
         Platform.runLater(() -> {
             if(button != null && container != null) {
@@ -271,14 +276,10 @@ public class MainController implements Initializable, ControlledScreen {
             //execute this in another thread so that
             //ui remains responsive
             executor.execute(() -> {
-                int numTarget = 1;
-                if (target != null) {
-                    numTarget = peerList.size() + 1;
-                }
-
                 for (int i = 0; i < numTarget; ++i) {
                     try {
                         List<Track> results = completionService.take().get();
+                        logger.debug("got search results back: {}", results);
                         for (Track result : results) {
                             Platform.runLater(() -> {
                                 resultCount.setValue(resultCount.getValue() + 1);
@@ -312,7 +313,7 @@ public class MainController implements Initializable, ControlledScreen {
                 stopButton.setPrefWidth(60.0);
                 stopButton.setMinWidth(60.0);
                 stopButton.setVisible(true);
-                System.out.println("playing "+event.getTrack());
+                logger.info("playing {}", event.getTrack());
                 String track = URLDecoder.decode(event.getTrack().getName(), "UTF-8");
                 trackLabel.setText(new File(track).getName());
             } catch (UnsupportedEncodingException e) {
@@ -345,7 +346,7 @@ public class MainController implements Initializable, ControlledScreen {
 
     @Subscribe
     public void onPeerOnlineEvent(PeerOnlineEvent event) {
-        System.out.println("peer online" + event.getPeer());
+        logger.info("peer online {}", event.getPeer());
         Platform.runLater(() -> {
             peerList.add(event.getPeer());
             peersButton.setText("Peers (" + peerList.size() + ")");
@@ -355,7 +356,7 @@ public class MainController implements Initializable, ControlledScreen {
 
     @Subscribe
     public void onPeerOfflineEvent(PeerOfflineEvent event) {
-        System.out.println("peer offline" + event.getPeer());
+        logger.info("peer offline {}", event.getPeer());
         Platform.runLater(() -> {
             peerList.remove(event.getPeer());
             peersButton.setText("Peers (" + peerList.size() + ")");
@@ -365,7 +366,7 @@ public class MainController implements Initializable, ControlledScreen {
 
     @Subscribe
     public void onPeerUpdateEvent(PeerUpdateEvent event) {
-        System.out.println("peer updated old=" + event.getOldPeer() + ", new= " + event.getNewPeer());
+        logger.info("peer updated old={}, new={}" , event.getOldPeer(), event.getNewPeer());
         Platform.runLater(() -> {
             peerList.remove(event.getOldPeer());
             peerList.add(event.getNewPeer());

@@ -32,7 +32,7 @@ public class LAMPService {
         mp3Player = new Mp3Player();
         peerManager = new PeerManager();
         discoverer = new Discoverer();
-        discoveryService.scheduleAtFixedRate(discoverer, 100, 500, TimeUnit.MILLISECONDS);
+        discoveryService.scheduleAtFixedRate(discoverer, 500, 100, TimeUnit.MILLISECONDS);
         apiService.execute(new Server());
         started = true;
         logger.info("lamp service started");

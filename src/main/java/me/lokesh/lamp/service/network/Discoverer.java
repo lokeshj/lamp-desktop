@@ -28,7 +28,7 @@ public class Discoverer implements Runnable {
     private static final EventBus eventBus = Shared.getEventBus();
 
     private static final int DISCOVERY_PORT = 15491;
-    private static final int TIMEOUT_MS = 500;
+    private static final int TIMEOUT_MS = 10;
 
     @Override
     public void run() {
@@ -132,8 +132,7 @@ public class Discoverer implements Runnable {
                 }
 
             } catch (IOException e) {
-                logger.trace("timeout waiting for status packet");
-                break;
+                logger.trace("nodestatus timeout waiting for status packet");
             }
             loopLength--;
         }

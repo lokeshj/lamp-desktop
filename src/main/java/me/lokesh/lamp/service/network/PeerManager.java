@@ -35,7 +35,7 @@ public class PeerManager {
     private ObservableMap<String, PeerStatus> peerStatusMap;
     private HashMap<String, Long> peerStatusTimeMap;
 
-    public static final long TIMEOUT = 2 * 1000 * 1000 * 1000L;
+    public static final long TIMEOUT = 3 * 1000 * 1000 * 1000L;
 
     public PeerManager() {
         eventBus.register(this);
@@ -62,6 +62,15 @@ public class PeerManager {
         Peer peer = peerStatus.getPeer();
         String ipAddress = peer.getIpAddress();
 
+        long curTime = System.nanoTime();
+        logger.debug("{} online at time {}", ipAddress, curTime);
+
+        if(peerStatusTimeMap.get(ipAddress) == null) {
+            peerStatusTimeMap.put(ipAddress, curTime);
+        } else {
+            peerStatusTimeMap.replace(ipAddress, curTime);
+        }
+
         if(peerStatusMap.get(ipAddress) == null) {
             peerStatusMap.put(ipAddress, peerStatus);
             eventBus.post(new PeerOnlineEvent(peer));
@@ -73,16 +82,6 @@ public class PeerManager {
                 eventBus.post(new PeerUpdateEvent(oldPeer, peer));
             }
             peerStatusMap.replace(ipAddress, peerStatus);
-        }
-
-
-        long curTime = System.nanoTime();
-        logger.debug("{} online at time {}", ipAddress, curTime);
-
-        if(peerStatusTimeMap.get(ipAddress) == null) {
-            peerStatusTimeMap.put(ipAddress, curTime);
-        } else {
-            peerStatusTimeMap.replace(ipAddress, curTime);
         }
     }
 
