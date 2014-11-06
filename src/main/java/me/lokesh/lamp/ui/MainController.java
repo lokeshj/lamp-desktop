@@ -3,6 +3,8 @@ package me.lokesh.lamp.ui;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import javafx.application.Platform;
+import javafx.beans.binding.Bindings;
+import javafx.beans.property.SimpleIntegerProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
@@ -35,7 +37,10 @@ import java.io.File;
 import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.net.URLDecoder;
-import java.util.*;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Optional;
+import java.util.ResourceBundle;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorCompletionService;
 import java.util.concurrent.ExecutorService;
@@ -44,15 +49,14 @@ import java.util.stream.Collectors;
 
 public class MainController implements Initializable, ControlledScreen {
     private final EventBus eventBus = Shared.getEventBus();
-    public Button stopButton;
     private ScreensPane screensPane;
 
     public Label logo;
     public Button settingsButton;
     public TextField searchTextfield;
     public Button searchButton;
-    public Hyperlink deviceNameLabel;
-    public VBox mainContenArea;
+    public Label deviceNameLabel;
+    public VBox mainContentArea;
     public Label trackLabel;
     public Circle connectionStatus;
     public ListView<String> searchResultListview;
@@ -60,13 +64,18 @@ public class MainController implements Initializable, ControlledScreen {
     public ListView<Peer> peerListView;
     public ListView<String> libraryListView;
     public HBox mainToolbarBox;
+    public Button stopButton;
+    public Label searchDescription;
+    public VBox searchResultCtr;
+    public VBox libraryCtr;
+    public Label libraryDescription;
 
-    private ToggleButton networkBtn;
+    private ToggleButton peersButton;
     private ToggleButton libraryButton;
     private ToggleButton searchResultsButton;
 
-    private List<Track> searchResultUrlList;
-    private List<Track> libraryList;
+    private List<Track> searchResultTrackList;
+    private List<Track> libraryTrackList;
     private ObservableList<Peer> peerList;
     private Peer lastSelectedPeer;
 
@@ -76,6 +85,8 @@ public class MainController implements Initializable, ControlledScreen {
 
     private ExecutorService searchExecutor = Executors.newCachedThreadPool();
     private ExecutorCompletionService<List<Track>> searchCompletionService;
+    private ExecutorService libraryLoaderExecutor = Executors.newCachedThreadPool();
+    private ExecutorCompletionService<List<Track>> libraryLoadCompletionService;
 
     @Override
     public void setScreenParent(ScreensPane screenPage) {
@@ -91,34 +102,30 @@ public class MainController implements Initializable, ControlledScreen {
         searchButton.setGraphic(fontAwesome.create(FontAwesome.Glyph.SEARCH).size(12));
 
         deviceNameLabel.textProperty().bind(Config.getDeviceName());
-        deviceNameLabel.setOnMouseClicked(event -> {
-            libraryButton.setSelected(true);
-            libraryListView.toFront();
-        });
 
-        networkBtn = new ToggleButton("Network");
-        libraryButton = new ToggleButton("Library");
+        peersButton = new ToggleButton("Peers (0)");
+        libraryButton = new ToggleButton("Shared Library");
         searchResultsButton = new ToggleButton("Search Results");
 
-        networkBtn.setSelected(true);
+        peersButton.setSelected(true);
         searchResultsButton.setVisible(false);
 
         SegmentedButton segmentedButton_dark =
-                new SegmentedButton(networkBtn, libraryButton, searchResultsButton);
+                new SegmentedButton(peersButton, libraryButton, searchResultsButton);
         segmentedButton_dark.getStyleClass().add(SegmentedButton.STYLE_CLASS_DARK);
         mainToolbarBox.getChildren().add(segmentedButton_dark);
 
-        networkBtn.setOnMouseClicked(event -> {
-            if (networkBtn.isSelected()) {
+        peersButton.setOnMouseClicked(event -> {
+            if (peersButton.isSelected()) {
                 peerListView.toFront();
             } else {
-                networkBtn.setSelected(true);
+                peersButton.setSelected(true);
             }
         });
 
         libraryButton.setOnMouseClicked((event) -> {
             if (libraryButton.isSelected()) {
-                libraryListView.toFront();
+                libraryCtr.toFront();
             } else  {
                 libraryButton.setSelected(true);
             }
@@ -126,7 +133,7 @@ public class MainController implements Initializable, ControlledScreen {
 
         searchResultsButton.setOnMouseClicked((event) -> {
             if (searchResultsButton.isSelected()) {
-                searchResultListview.toFront();
+                searchResultCtr.toFront();
             } else  {
                 searchResultsButton.setSelected(true);
             }
@@ -136,7 +143,9 @@ public class MainController implements Initializable, ControlledScreen {
             if (event.getClickCount() == 2) {
                 //Use ListView's getSelected Item
                 int itemIndex = searchResultListview.getSelectionModel().getSelectedIndex();
-                showPeerChoiceDialogAndPlay(searchResultUrlList.get(itemIndex));
+                if(itemIndex >= 0) {
+                    showPeerChoiceDialogAndPlay(searchResultTrackList.get(itemIndex));
+                }
             }
         });
 
@@ -144,31 +153,64 @@ public class MainController implements Initializable, ControlledScreen {
         peerListView.setItems(peerList);
         peerListView.setCellFactory(param -> new PeerListViewCell());
 
-        loadLibrary();
         libraryListView.setOnMouseClicked(event -> {
             if (event.getClickCount() == 2) {
                 //Use ListView's getSelected Item
                 int itemIndex = libraryListView.getSelectionModel().getSelectedIndex();
-                showPeerChoiceDialogAndPlay(libraryList.get(itemIndex));
+                if (itemIndex >= 0) {
+                    showPeerChoiceDialogAndPlay(libraryTrackList.get(itemIndex));
+                }
             }
         });
 
         peerListView.setPlaceholder(new Label("No Peers are online"));
-        libraryListView.setPlaceholder(new Label("No MP3 files found"));
+        libraryListView.setPlaceholder(new Label("Loading ..."));
+
+        loadLibrary();
     }
 
     private void loadLibrary() {
+        libraryLoadCompletionService = new ExecutorCompletionService<>(libraryLoaderExecutor);
+        libraryLoadCompletionService.submit(() -> SearchAgent.remote("localhost", ""));
+        for (Peer peer : peerList) {
+            libraryLoadCompletionService.submit(() -> SearchAgent.remote(peer.getIpAddress(), ""));
+        }
+
+        libraryTrackList = new LinkedList<>();
+
         Platform.runLater(() -> {
-            ObservableList<String> list = FXCollections.observableArrayList();
-            libraryListView.setItems(list);
+            SimpleIntegerProperty resultCount = new SimpleIntegerProperty(0);
 
-            List<Track> results = SearchAgent.remote("localhost", "");
-            libraryList = new ArrayList<>();
+            int userCount = peerList.size() + 1;
+            libraryDescription.textProperty().bind(Bindings.concat(resultCount,
+                    " Songs from " + userCount + " users"));
 
-            for (Track result : results) {
-                list.add(result.getName());
-                libraryList.add(result);
-            }
+            ObservableList<String> nameList = FXCollections.observableArrayList();
+            libraryListView.setItems(nameList);
+
+            //execute this in another thread so that
+            //ui remains responsive
+            libraryLoaderExecutor.execute(() -> {
+                for (int i = 0; i < peerList.size() + 1; ++i) {
+                    try {
+                        List<Track> results = libraryLoadCompletionService.take().get();
+                        for (Track result : results) {
+                            Platform.runLater(() -> {
+                                resultCount.setValue(resultCount.getValue() + 1);
+                                nameList.add(result.getName());
+                                libraryTrackList.add(result);
+                            });
+                        }
+                    } catch (InterruptedException | ExecutionException e) {
+                        e.printStackTrace();
+                    }
+                }
+
+                if (nameList.size() == 0) {
+                    Platform.runLater(() -> libraryListView.setPlaceholder(new Label("No MP3 files found")));
+                }
+            });
+
         });
     }
 
@@ -191,6 +233,7 @@ public class MainController implements Initializable, ControlledScreen {
         dialog.setHeaderText("Play it on?");
         dialog.setContentText("");
         dialog.setTitle("Select device");
+        dialog.setResizable(true);
 
         Optional<Peer> result = dialog.showAndWait();
         if (result.isPresent()) {
@@ -201,7 +244,7 @@ public class MainController implements Initializable, ControlledScreen {
 
     @FXML
     public void search() {
-        String query = searchTextfield.getText().trim();
+        String query = searchTextfield.getText().trim().replaceAll("\"", "");
         if (query.isEmpty()) {
             return;
         }
@@ -214,12 +257,17 @@ public class MainController implements Initializable, ControlledScreen {
             searchCompletionService.submit(() -> SearchAgent.remote(peer.getIpAddress(), query));
         }
 
-        searchResultUrlList = new LinkedList<>();
+        searchResultTrackList = new LinkedList<>();
 
         Platform.runLater(() -> {
+            SimpleIntegerProperty resultCount = new SimpleIntegerProperty(0);
+            int userCount = peerList.size() + 1;
+            searchDescription.textProperty().bind(Bindings.concat(resultCount,  " Results for \"" +
+                    query + "\" from " + userCount + " users"));
+
             searchResultsButton.setSelected(true);
             searchResultsButton.setVisible(true);
-            searchResultListview.toFront();
+            searchResultCtr.toFront();
 
             ObservableList<String> nameList = FXCollections.observableArrayList();
             searchResultListview.setItems(nameList);
@@ -232,8 +280,9 @@ public class MainController implements Initializable, ControlledScreen {
                         List<Track> results = searchCompletionService.take().get();
                         for (Track result : results) {
                             Platform.runLater(() -> {
+                                resultCount.setValue(resultCount.getValue() + 1);
                                 nameList.add(result.getName());
-                                searchResultUrlList.add(result);
+                                searchResultTrackList.add(result);
                             });
                         }
                     } catch (InterruptedException | ExecutionException e) {
@@ -295,13 +344,19 @@ public class MainController implements Initializable, ControlledScreen {
     @Subscribe
     public void onPeerOnlineEvent(PeerOnlineEvent event) {
         System.out.println("peer online" + event.getPeer());
-        Platform.runLater(() -> peerList.add(event.getPeer()));
+        Platform.runLater(() -> {
+            peerList.add(event.getPeer());
+            peersButton.setText("Peers (" + peerList.size() + ")");
+        });
     }
 
     @Subscribe
     public void onPeerOfflineEvent(PeerOfflineEvent event) {
         System.out.println("peer offline" + event.getPeer());
-        Platform.runLater(() -> peerList.remove(event.getPeer()));
+        Platform.runLater(() -> {
+            peerList.remove(event.getPeer());
+            peersButton.setText("Peers (" + peerList.size() + ")");
+        });
     }
 
     @Subscribe

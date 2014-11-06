@@ -51,6 +51,7 @@ public final class HttpAgent {
     public static String get(String url) {
         String response = null;
         try {
+            logger.debug("sending get request to {}", url);
             HttpGet httpGet = new HttpGet(url);
             ResponseHandler<String> responseHandler = new BasicResponseHandler();
             response = httpClient.execute(httpGet, responseHandler);
