@@ -60,5 +60,6 @@ public class Main extends Application {
         if(Config.isRegistered()) {
             LAMPService.stop();
         }
+        System.exit(0);
     }
 }
