@@ -3,7 +3,7 @@ package me.lokesh.lamp.service.player;
 /**
  * Created by lokesh.
  */
-public class Track {
+public class Track implements Comparable {
     private String url;
     private String name;
 
@@ -38,5 +38,10 @@ public class Track {
                 "url='" + url + '\'' +
                 ", name='" + name + '\'' +
                 '}';
+    }
+
+    @Override
+    public int compareTo(Object o) {
+        return name.compareToIgnoreCase(((Track) o).getName());
     }
 }

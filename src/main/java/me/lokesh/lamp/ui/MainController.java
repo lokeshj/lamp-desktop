@@ -40,10 +40,7 @@ import java.io.File;
 import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.net.URLDecoder;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Optional;
-import java.util.ResourceBundle;
+import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorCompletionService;
 import java.util.concurrent.ExecutorService;
@@ -280,20 +277,24 @@ public class MainController implements Initializable, ControlledScreen {
             //execute this in another thread so that
             //ui remains responsive
             executor.execute(() -> {
+                List<Track> mergedList = new LinkedList<>();
                 for (int i = 0; i < numTarget; ++i) {
                     try {
                         List<Track> results = completionService.take().get();
                         logger.debug("got search results back: {}", results);
-                        for (Track result : results) {
-                            Platform.runLater(() -> {
-                                resultCount.setValue(resultCount.getValue() + 1);
-                                nameList.add(result.getName());
-                                trackList.add(result);
-                            });
-                        }
+                        mergedList.addAll(results);
                     } catch (InterruptedException | ExecutionException e) {
                         e.printStackTrace();
                     }
+                }
+
+                Collections.sort(mergedList);
+                for (Track result : mergedList) {
+                    Platform.runLater(() -> {
+                        resultCount.setValue(resultCount.getValue() + 1);
+                        nameList.add(result.getName());
+                        trackList.add(result);
+                    });
                 }
 
                 Platform.runLater(() -> {
