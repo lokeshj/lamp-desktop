@@ -8,11 +8,14 @@ import javafx.beans.property.SimpleIntegerProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
@@ -146,11 +149,25 @@ public class MainController implements Initializable, ControlledScreen {
 
         searchResultListview.setOnMouseClicked(event -> {
             if (event.getClickCount() == 2) {
-                //Use ListView's getSelected Item
-                int itemIndex = searchResultListview.getSelectionModel().getSelectedIndex();
-                if(itemIndex >= 0) {
-                    showPeerChoiceDialogAndPlay(searchResultTrackList.get(itemIndex));
-                }
+                playSelectedFromList(searchResultListview, searchResultTrackList);
+            }
+        });
+
+        searchResultListview.setOnKeyPressed(event -> {
+            if(event.getCode().equals(KeyCode.ENTER)) {
+                playSelectedFromList(searchResultListview, searchResultTrackList);
+            }
+        });
+
+        libraryListView.setOnMouseClicked(event -> {
+            if (event.getClickCount() == 2) {
+                playSelectedFromList(libraryListView, libraryTrackList);
+            }
+        });
+
+        libraryListView.setOnKeyPressed(event -> {
+            if(event.getCode().equals(KeyCode.ENTER)) {
+                playSelectedFromList(libraryListView, libraryTrackList);
             }
         });
 
@@ -158,20 +175,17 @@ public class MainController implements Initializable, ControlledScreen {
         peerListView.setItems(peerList);
         peerListView.setCellFactory(param -> new PeerListViewCell());
 
-        libraryListView.setOnMouseClicked(event -> {
-            if (event.getClickCount() == 2) {
-                //Use ListView's getSelected Item
-                int itemIndex = libraryListView.getSelectionModel().getSelectedIndex();
-                if (itemIndex >= 0) {
-                    showPeerChoiceDialogAndPlay(libraryTrackList.get(itemIndex));
-                }
-            }
-        });
-
         peerListView.setPlaceholder(new Label("No Peers are online"));
         libraryListView.setPlaceholder(new Label("Loading ..."));
 
         refreshLibrary(null);
+    }
+
+    private void playSelectedFromList(ListView listView, List<Track> trackList) {
+        int itemIndex = listView.getSelectionModel().getSelectedIndex();
+        if (itemIndex >= 0) {
+            showPeerChoiceDialogAndPlay(trackList.get(itemIndex));
+        }
     }
 
     private void showPeerChoiceDialogAndPlay(Track selectedItem) {
