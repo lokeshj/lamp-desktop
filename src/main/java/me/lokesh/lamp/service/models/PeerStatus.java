@@ -11,6 +11,18 @@ public class PeerStatus {
     String playedBy;        //name of the node which started playback on this node
     String playedFrom;      //source node's name
 
+    public PeerStatus() {
+    }
+
+    public PeerStatus(Peer peer, boolean playing, String track, boolean libraryUpdated) {
+        this.peer = peer;
+        this.playing = playing;
+        this.libraryUpdated = libraryUpdated;
+        this.track = track;
+        this.playedBy = "";
+        this.playedFrom = "";
+    }
+
     public Peer getPeer() {
         return peer;
     }

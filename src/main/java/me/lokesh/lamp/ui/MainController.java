@@ -8,14 +8,12 @@ import javafx.beans.property.SimpleIntegerProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
-import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
-import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
@@ -154,7 +152,7 @@ public class MainController implements Initializable, ControlledScreen {
         });
 
         searchResultListview.setOnKeyPressed(event -> {
-            if(event.getCode().equals(KeyCode.ENTER)) {
+            if (event.getCode().equals(KeyCode.ENTER)) {
                 playSelectedFromList(searchResultListview, searchResultTrackList);
             }
         });
@@ -271,6 +269,9 @@ public class MainController implements Initializable, ControlledScreen {
             completionService.submit(() -> SearchAgent.remote(target.getIpAddress(), query));
         }
 
+        SimpleIntegerProperty resultCount = new SimpleIntegerProperty(0);
+        ObservableList<String> nameList = FXCollections.observableArrayList();
+
         Platform.runLater(() -> {
             if(button != null && container != null) {
                 button.setSelected(true);
@@ -282,45 +283,39 @@ public class MainController implements Initializable, ControlledScreen {
             indicator.setPrefWidth(18.0);
             indicator.setPrefHeight(18.0);
 
-            SimpleIntegerProperty resultCount = new SimpleIntegerProperty(0);
             descriptionLabel.textProperty().bind(Bindings.concat(resultCount, descriptionStaticText));
-
-            ObservableList<String> nameList = FXCollections.observableArrayList();
             listView.setItems(nameList);
+        });
 
-            //execute this in another thread so that
-            //ui remains responsive
-            executor.execute(() -> {
-                List<Track> mergedList = new LinkedList<>();
-                for (int i = 0; i < numTarget; ++i) {
-                    try {
-                        List<Track> results = completionService.take().get();
-                        logger.debug("got search results back: {}", results);
-                        mergedList.addAll(results);
-                    } catch (InterruptedException | ExecutionException e) {
-                        e.printStackTrace();
-                    }
+        //execute this in another thread so that
+        //ui remains responsive
+        executor.execute(() -> {
+            List<Track> mergedList = new LinkedList<>();
+            for (int i = 0; i < numTarget; ++i) {
+                try {
+                    List<Track> results = completionService.take().get();
+                    logger.debug("got search results back: {}", results);
+                    mergedList.addAll(results);
+                } catch (InterruptedException | ExecutionException e) {
+                    e.printStackTrace();
                 }
+            }
 
-                Collections.sort(mergedList);
+            Collections.sort(mergedList);
+            Platform.runLater(() -> {
                 for (Track result : mergedList) {
-                    Platform.runLater(() -> {
-                        resultCount.setValue(resultCount.getValue() + 1);
-                        nameList.add(result.getName());
-                        trackList.add(result);
-                    });
+                    resultCount.setValue(resultCount.getValue() + 1);
+                    nameList.add(result.getName());
+                    trackList.add(result);
                 }
 
-                Platform.runLater(() -> {
-                    indicator.setVisible(false);
-                    indicator.setPrefWidth(0);
-                    indicator.setPrefHeight(0);
-                    if (nameList.size() == 0) {
-                        listView.setPlaceholder(new Label(emptyLabel));
-                    }
-                });
+                indicator.setVisible(false);
+                indicator.setPrefWidth(0);
+                indicator.setPrefHeight(0);
+                if (mergedList.size() == 0) {
+                    listView.setPlaceholder(new Label(emptyLabel));
+                }
             });
-
         });
     }
 
@@ -394,7 +389,7 @@ public class MainController implements Initializable, ControlledScreen {
         Platform.runLater(() -> {
             peerList.remove(event.getOldPeer());
             peerList.add(event.getNewPeer());
-            if(event.isLibraryUpdated()) {
+            if (event.isLibraryUpdated()) {
                 logger.info("library of peer {} updated", event.getNewPeer().getIpAddress());
                 refreshLibrary(null);
             }

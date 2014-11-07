@@ -63,27 +63,15 @@ public class Discoverer implements Runnable {
             throw new Exception("Network Disconnected");
         }
 
-        Peer peer = new Peer();
-        peer.setIpAddress(SystemProperties.getIPAddress());
-        peer.setName(Config.getDeviceName().getValue());
-        peer.setOs(SystemProperties.getOs());
+        Peer peer = new Peer(Config.getDeviceName().getValue(),
+                SystemProperties.getOs(), SystemProperties.getIPAddress());
 
         Mp3Player player = LAMPService.getMp3Player();
         Track track = player.getCurrentTrack();
+        String trackname = (track != null) ? track.getName() : "";
 
-        PeerStatus peerStatus = new PeerStatus();
-        peerStatus.setPlaying(player.isPlaying());
-        peerStatus.setPlayedBy("");
-        peerStatus.setPlayedFrom("");
-        peerStatus.setLibraryUpdated(Config.isMusicFolderUpdated());
-
-        if(track != null) {
-            peerStatus.setTrack(track.getName());
-        } else  {
-            peerStatus.setTrack("");
-        }
-
-        peerStatus.setPeer(peer);
+        PeerStatus peerStatus = new PeerStatus(peer, player.isPlaying(),
+                trackname, Config.isMusicFolderUpdated());
 
         String data = JsonHandler.stringify(peerStatus);
         logger.debug("created discovery packet with data: " + data);

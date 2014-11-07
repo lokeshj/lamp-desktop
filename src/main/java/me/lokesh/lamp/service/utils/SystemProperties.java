@@ -9,10 +9,11 @@ import java.net.SocketException;
 import java.util.Enumeration;
 
 /**
- * Created by lokesh on 30/10/14.
+ * Created by lokesh.
  */
 public class SystemProperties {
-    private static final String OS = System.getProperty("os.name").toLowerCase();
+    private static final String OS_SYSTEM = System.getProperty("os.name").toLowerCase();
+    private static String OS;
 
     public static String getIPAddress() {
         java.lang.System.setProperty("java.net.preferIPv4Stack", "true");
@@ -39,32 +40,36 @@ public class SystemProperties {
     }
 
     public static boolean isOSWindows() {
-        return OS.startsWith("windows");
+        return OS_SYSTEM.startsWith("windows");
     }
 
     public static boolean isOSLinux() {
-        return OS.startsWith("linux");
+        return OS_SYSTEM.startsWith("linux");
     }
 
     public static boolean isOSMac() {
-        return OS.startsWith("mac");
+        return OS_SYSTEM.startsWith("mac");
     }
 
     public static boolean isOSAndroid() {
-        return OS.startsWith("android");
+        return OS_SYSTEM.startsWith("android");
     }
-    
+
     public static String getOs() {
-        if (SystemProperties.isOSWindows()) {
-            return Peer.WINDOWS;
-        } else if (SystemProperties.isOSLinux()) {
-            return Peer.LINUX;
-        } else if (SystemProperties.isOSMac()) {
-            return Peer.MACOS;
-        } else if (SystemProperties.isOSAndroid()) {
-            return Peer.ANDROID;
-        } else {
-            return Peer.UNKNOWN;
+        if(OS == null) {
+            if (SystemProperties.isOSWindows()) {
+                OS = Peer.WINDOWS;
+            } else if (SystemProperties.isOSLinux()) {
+                OS = Peer.LINUX;
+            } else if (SystemProperties.isOSMac()) {
+                OS = Peer.MACOS;
+            } else if (SystemProperties.isOSAndroid()) {
+                OS = Peer.ANDROID;
+            } else {
+                OS = Peer.UNKNOWN;
+            }
         }
+
+        return OS;
     }
 }
