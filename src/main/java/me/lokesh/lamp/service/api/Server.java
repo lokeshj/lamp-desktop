@@ -17,9 +17,7 @@ import org.slf4j.LoggerFactory;
 import java.io.*;
 import java.net.URLEncoder;
 import java.nio.file.Path;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Properties;
+import java.util.*;
 
 /**
  * Created by lokesh.
@@ -33,6 +31,14 @@ public class Server implements Runnable{
     private NanoServer mNanoServer;
 
     private final Object lock = new Object();
+
+    private final Map<String, CachedResponse> cacheMap;
+    private final static long cacheStaleIn = 60 * 1000 * 1000 * 1000L;     //1 min
+    private final static int cacheSize = 50;
+
+    public Server() {
+        cacheMap = new HashMap<>(cacheSize);
+    }
 
     @Override
     public void run() {
@@ -50,6 +56,44 @@ public class Server implements Runnable{
             logger.info("Api server stopped!");
             mNanoServer.stop();
         }
+    }
+
+    private class CachedResponse {
+        private String response;
+        private long timestamp;
+
+        private CachedResponse(String response, long timestamp) {
+            this.response = response;
+            this.timestamp = timestamp;
+        }
+
+        public String getResponse() {
+            return response;
+        }
+
+        public long getTimestamp() {
+            return timestamp;
+        }
+    }
+
+    private CachedResponse checkCache(String key) {
+        long curTime = System.nanoTime();
+        CachedResponse cachedResponse = cacheMap.get(key);
+        if (cachedResponse != null ) {
+            if (curTime - cachedResponse.getTimestamp() < cacheStaleIn) {
+                logger.info("search: cache hit!");
+            } else  {
+                logger.info("cache stale");
+                cacheMap.remove(key);
+            }
+        } else {
+            logger.info("cache miss");
+        }
+        return cachedResponse;
+    }
+
+    private void addToCache(String key, String response) {
+        cacheMap.put(key, new CachedResponse(response, System.nanoTime()));
     }
 
     private class NanoServer extends NanoHTTPD {
@@ -124,6 +168,11 @@ public class Server implements Runnable{
             logger.info("got search request. query={}", query);
 
             if (query != null) {
+                CachedResponse cachedResponse = checkCache(query);
+                if(cachedResponse != null) {
+                    return new NanoHTTPD.Response(HTTP_OK, "application/json", cachedResponse.getResponse());
+                }
+
                 List<Track> results = new LinkedList<>();
                 try {
                     AsyncRecursiveDirectoryStream searchResult = SearchAgent.local(query);
@@ -141,7 +190,10 @@ public class Server implements Runnable{
                     logger.error("Error in search ", e);
                 }
 
-                return new Response(HTTP_OK, "application/json", JsonHandler.stringify(results));
+                logger.info("search finished");
+                String response = JsonHandler.stringify(results);
+                addToCache(query, response);
+                return new Response(HTTP_OK, "application/json", response);
 
             } else {
                 return new Response(HTTP_BADREQUEST, MIME_HTML, "q is a required parameter");
