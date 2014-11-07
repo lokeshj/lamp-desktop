@@ -411,9 +411,9 @@ public class MainController implements Initializable, ControlledScreen {
         protected void updateItem(Peer item, boolean empty) {
             super.updateItem(item, empty);
             if(!empty) {
-                String ip = item.getIpAddress();
+                String uuid = item.getUuid();
                 ObservableMap<String, PeerStatus> statusMap = LAMPService.getPeerManager().getPeerStatusMap();
-                PeerStatus peerStatus = statusMap.get(ip);
+                PeerStatus peerStatus = statusMap.get(uuid);
 
                 String labelText = item.getName();
                 if (peerStatus.isPlaying()) {

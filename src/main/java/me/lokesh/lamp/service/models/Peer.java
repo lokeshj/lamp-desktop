@@ -1,5 +1,7 @@
 package me.lokesh.lamp.service.models;
 
+import me.lokesh.lamp.service.Config;
+
 /**
  * Created by lokesh.
  */
@@ -12,14 +14,17 @@ public class Peer {
     public static final String WINDOWS_PHONE = "WINDOWS_PHONE";
     public static final String UNKNOWN = "UNKNOWN";
 
-    String name;
-    String os;
-    String ipAddress;
+    private String uuid;
+    private String name;
+    private String os;
+    private String ipAddress;
 
     public Peer() {
+        this.uuid = Config.getUuid();
     }
 
     public Peer(String name, String os, String ipAddress) {
+        this.uuid = Config.getUuid();
         this.name = name;
         this.os = os;
         this.ipAddress = ipAddress;
@@ -49,6 +54,10 @@ public class Peer {
         this.name = name;
     }
 
+    public String getUuid() {
+        return uuid;
+    }
+
     @Override
     public String toString() {
         return name;
@@ -58,7 +67,7 @@ public class Peer {
     public boolean equals(Object obj) {
         if(obj instanceof Peer) {
             Peer other = (Peer) obj;
-            return other.getIpAddress().equals(this.getIpAddress());
+            return other.getUuid().equals(this.getUuid());
         } else {
             return false;
         }

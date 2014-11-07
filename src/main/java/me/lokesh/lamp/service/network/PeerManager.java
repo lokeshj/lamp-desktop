@@ -58,30 +58,30 @@ public class PeerManager {
 
     @Subscribe
     public void onPeerStatusReceivedEvent(PeerStatusReceivedEvent event) {
+        long curTime = System.nanoTime();
+
         PeerStatus peerStatus = event.getPeerStatus();
         Peer peer = peerStatus.getPeer();
-        String ipAddress = peer.getIpAddress();
+        logger.debug("{} online at time {}", peer, curTime);
 
-        long curTime = System.nanoTime();
-        logger.debug("{} online at time {}", ipAddress, curTime);
-
-        if(peerStatusTimeMap.get(ipAddress) == null) {
-            peerStatusTimeMap.put(ipAddress, curTime);
+        String uuid = peer.getUuid();
+        if(peerStatusTimeMap.get(uuid) == null) {
+            peerStatusTimeMap.put(uuid, curTime);
         } else {
-            peerStatusTimeMap.replace(ipAddress, curTime);
+            peerStatusTimeMap.replace(uuid, curTime);
         }
 
-        if(peerStatusMap.get(ipAddress) == null) {
-            peerStatusMap.put(ipAddress, peerStatus);
+        if(peerStatusMap.get(uuid) == null) {
+            peerStatusMap.put(uuid, peerStatus);
             eventBus.post(new PeerOnlineEvent(peer));
         } else {
-            PeerStatus oldStatus = peerStatusMap.get(ipAddress);
-            Peer oldPeer = peerStatusMap.get(ipAddress).getPeer();
+            PeerStatus oldStatus = peerStatusMap.get(uuid);
+            Peer oldPeer = peerStatusMap.get(uuid).getPeer();
 
             if (!oldStatus.equals(peerStatus)) {
                 eventBus.post(new PeerUpdateEvent(oldPeer, peer, peerStatus.isLibraryUpdated()));
             }
-            peerStatusMap.replace(ipAddress, peerStatus);
+            peerStatusMap.replace(uuid, peerStatus);
         }
     }
 
@@ -105,21 +105,21 @@ public class PeerManager {
             long curTime = System.nanoTime();
             logger.debug("peer status check running @ {}", curTime);
 
-            Set<String> ipSet = peerStatusMap.keySet();
-            Iterator<String> it = ipSet.iterator();
+            Set<String> uuidSet = peerStatusMap.keySet();
+            Iterator<String> it = uuidSet.iterator();
             while (it.hasNext()) {
-                String ip = it.next();
-                Long savedTime = peerStatusTimeMap.get(ip);
+                String uuid = it.next();
+                Long savedTime = peerStatusTimeMap.get(uuid);
 
                 if ((savedTime == null) || (curTime - savedTime > 2 * TIMEOUT)) {
-                    logger.debug(ip + "went offline. savedTime={} dela ={}", savedTime, curTime - savedTime);
+                    logger.debug(uuid + "went offline. savedTime={}, curTime ={}", savedTime, curTime);
 
-                    PeerStatus peerStatus = peerStatusMap.get(ip);
+                    PeerStatus peerStatus = peerStatusMap.get(uuid);
                     it.remove();
-                    peerStatusTimeMap.remove(ip);
+                    peerStatusTimeMap.remove(uuid);
                     eventBus.post(new PeerOfflineEvent(peerStatus.getPeer()));
                 } else  {
-                    logger.debug("{} is still online!", ip);
+                    logger.debug("{} is still online!", uuid);
                 }
             }
         }
