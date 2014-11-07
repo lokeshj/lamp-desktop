@@ -176,7 +176,9 @@ public class MainController implements Initializable, ControlledScreen {
         peerListView.setPlaceholder(new Label("No Peers are online"));
         libraryListView.setPlaceholder(new Label("Loading ..."));
 
-        refreshLibrary(null);
+        if(Config.isRegistered()) {
+            refreshLibrary(null);
+        }
     }
 
     private void playSelectedFromList(ListView listView, List<Track> trackList) {
@@ -398,6 +400,7 @@ public class MainController implements Initializable, ControlledScreen {
 
     @Subscribe
     public void onSettingsUpdatedEvent(SettingsUpdatedEvent event) {
+
         refreshLibrary(null);
     }
 

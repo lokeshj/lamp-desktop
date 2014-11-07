@@ -2,6 +2,7 @@ package me.lokesh.lamp.ui;
 
 import com.google.common.eventbus.EventBus;
 import javafx.beans.binding.BooleanBinding;
+import javafx.beans.binding.StringBinding;
 import javafx.beans.property.StringProperty;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Button;
@@ -110,9 +111,22 @@ public class SignupController implements Initializable, ControlledScreen {
 
         startButton.disableProperty().bind(nonEmptyBinding);
 
-        if (Config.isRegistered()) {
-            startButton.setText("Update");
-        }
+        StringBinding startButtonTextBinding = new StringBinding() {
+            {
+                super.bind(Config.getRegisteredProperty());
+            }
+
+            @Override
+            protected String computeValue() {
+                if (Config.isRegistered()) {
+                    return "Update";
+                } else {
+                    return "Start";
+                }
+            }
+        };
+
+        startButton.textProperty().bind(startButtonTextBinding);
     }
 
     public void selectMusicFolder() {

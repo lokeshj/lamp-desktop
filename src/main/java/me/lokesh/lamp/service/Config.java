@@ -1,5 +1,7 @@
 package me.lokesh.lamp.service;
 
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 
@@ -17,7 +19,7 @@ public class Config {
     private static String uuid;
 
     private static boolean loaded = false;
-    private static boolean registered = false;
+    private static BooleanProperty registered = new SimpleBooleanProperty(false);
 
     private static StringProperty deviceName = new SimpleStringProperty("");
     private static StringProperty musicFolderPath = new SimpleStringProperty("");
@@ -33,17 +35,12 @@ public class Config {
         String storedMusicFolderPath = prefs.get(KEY_MUSIC_FOLDER_PATH, "");
 
         if (storedDevicename.isEmpty() || storedMusicFolderPath.isEmpty()) {
-            registered = false;
+            registered.setValue(false);
         } else {
             deviceName.setValue(storedDevicename);
             musicFolderPath.setValue(storedMusicFolderPath);
 
-            registered = true;
-        }
-
-        if(uuid.isEmpty()) {
-            uuid = UUID.randomUUID().toString();
-            save(storedDevicename, storedMusicFolderPath);
+            registered.setValue(true);
         }
 
         loaded = true;
@@ -62,14 +59,18 @@ public class Config {
             musicFolderPath.setValue(musicfolderpath);
 
             loaded = true;
-            registered = true;
+            registered.setValue(true);
         } catch (BackingStoreException e) {
             e.printStackTrace();
         }
     }
 
-    public static boolean isRegistered() {
+    public static BooleanProperty getRegisteredProperty() {
         return registered;
+    }
+
+    public static boolean isRegistered() {
+        return registered.getValue();
     }
 
     public static StringProperty getDeviceName() {
@@ -94,6 +95,10 @@ public class Config {
     }
 
     public static String getUuid() {
+        if(uuid.isEmpty()) {
+            uuid = UUID.randomUUID().toString();
+        }
+
         return uuid;
     }
 
