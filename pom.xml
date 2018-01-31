@@ -34,7 +34,7 @@
         <dependency>
             <groupId>org.controlsfx</groupId>
             <artifactId>controlsfx</artifactId>
-            <version>8.20.8</version>
+            <version>8.40.14</version>
         </dependency>
 
         <dependency>
@@ -109,7 +109,7 @@
             <plugin>
                 <groupId>com.zenjava</groupId>
                 <artifactId>javafx-maven-plugin</artifactId>
-                <version>8.1.2</version>
+                <version>8.8.3</version>
                 <configuration>
                     <mainClass>me.lokesh.lamp.Main</mainClass>
                 </configuration>
